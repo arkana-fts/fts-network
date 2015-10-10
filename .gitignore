@@ -19,6 +19,7 @@ Release_Static/
 ipch/
 Debug
 Release
+lib/
 
 # Ignore KDevelop-specific folders too
 .kdev*
