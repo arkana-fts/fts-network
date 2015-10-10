@@ -13,6 +13,7 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
+#include <cstring>
 
 #include "connection.h"
 #include "packet.h"
@@ -24,13 +25,11 @@
 #  include <unistd.h>
 #  include <poll.h>
 #  include <sys/select.h>
-#  include <sys/socket.h>
-#  include <sys/types.h>
 #  include <resolv.h>
 #  include <netdb.h>
 #  include <fcntl.h>
+#  include <arpa/inet.h>
 #else
-#include <WinSock2.h>
 // Gotta work this around with a function cuz a define would be too risked.
 inline void close(SOCKET s)
 {
@@ -40,6 +39,7 @@ inline void close(SOCKET s)
 #if defined(_DEBUG)
 #  define DEBUG
 #endif
+
 #endif
 
 
@@ -142,7 +142,7 @@ std::string toHexString( const char* buf, int len )
 void netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
 {
     const std::string sHex = toHexString(in_pBuf, in_uiLen);
-    const std::string sIdent = toString((const uint32_t) id, 4, '0', std::ios_base::hex );
+    const std::string sIdent = toString(reinterpret_cast<const uint32_t>(id), 4, '0', std::ios_base::hex );
     std::string sMsg = "<" + sIdent + ">" + in_s + ": " + toString( in_uiLen ) + " Bytes: " + sHex + " (\"";
     for(uint32_t i = 0 ; i < in_uiLen ; i++) {
         // Replace control characters by a space for output.

@@ -48,7 +48,7 @@ public:
     Packet* transferData( Packet* p );
 
 
-    Packet *append(const std::string & in);
+    Packet *append(std::string in);
     Packet *append(const void *in_pData, uint32_t in_iSize);
 
     /// Appends something to the message.
@@ -110,7 +110,7 @@ public:
     }
 
     inline int8_t get() {int8_t out = 0; this->get(out); return out;};
-    inline std::string get( std::string &out) {out = this->get_string(); return out;};
+    inline void get(std::string& out) {out = this->get_string(); }
     std::string get_string();
     std::string extractString();
     int get(void *out_pData, uint32_t in_iSize);

@@ -28,6 +28,8 @@ if(MSVC)
             STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
         ENDIF()
     ENDFOREACH(flag_var)
+else()
+    add_definitions(-fpermissive)
 endif()
 set( FTS_DIR "" CACHE PATH "Path to the FTS root src directory" )
 

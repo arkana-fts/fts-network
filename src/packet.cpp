@@ -8,6 +8,8 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <cstring>
+
 
 #include "packet.h"
 
@@ -112,7 +114,7 @@ Packet *FTS::Packet::rewind(void)
  *
  * \author Pompei2
  */
-Packet *FTS::Packet::append(const std::string & in)
+Packet *FTS::Packet::append(std::string in)
 {
     size_t iLen =  in.length() + m_uiCursor + 1;
     realloc(iLen);

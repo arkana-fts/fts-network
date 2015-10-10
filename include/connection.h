@@ -11,20 +11,20 @@
 
 #if defined( _WIN32 )
 #  include <Winsock2.h>
+#  define WINDOOF 1
 #else
-#  include <arpa/inet.h>
+#  include <sys/types.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <netinet/ip.h>
+   using SOCKET = int;
+
 #endif
+
+using SOCKADDR_IN = sockaddr_in;
 
 #include <list>
 #include <sstream>
-
-// windows compatibility.
-#if defined( _WIN32 )
-using SOCKADDR_IN = sockaddr_in;
-#define WINDOOF 1
-#else
-using SOCKET = int;
-#endif
 
 #ifndef SOCKET_ERROR
 #  define SOCKET_ERROR -1
