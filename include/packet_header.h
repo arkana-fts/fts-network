@@ -1,7 +1,7 @@
 #ifndef FTS_PACKETHEADER_H
 #define FTS_PACKETHEADER_H
 
-using master_request_t = uint8_t;
+using master_request_t = std::uint8_t;
 
 constexpr size_t D_PACKET_HDR_LEN = (4 * sizeof( int8_t ) + sizeof( master_request_t ) + sizeof( uint32_t ));
 

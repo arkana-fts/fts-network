@@ -17,8 +17,8 @@
 
 #include "connection.h"
 #include "packet.h"
+#include "Logger.h"
 
-#include "logging/MsgType.h"
 #include "utilities/DataContainer.h"
 
 #if !defined( _WIN32 )
@@ -42,62 +42,6 @@ inline void close(SOCKET s)
 
 #endif
 
-
-template<typename T>
-void pack_param(std::vector<std::string>& pack, T first )
-{
-    pack.push_back( first );
-}
-
-template<typename T, typename... Ts>
-void pack_param(std::vector<std::string>& pack, T first, Ts... params )
-{
-    pack.push_back( first );
-    pack_param( pack, params... );
-}
-
-template<typename... Ts>
-void FTSMSGDBG( std::string in_Msg, int in_iDbgLv, Ts... params )
-{
-    std::vector<std::string> args;
-    pack_param( args, params... );
-    int i = 1;
-    for( auto p : args ) {
-        std::string fmt = "{" + toString( i ) + "}";
-        auto pos = in_Msg.find( fmt );
-        if( pos != std::string::npos ) {
-            in_Msg.replace( pos, fmt.size(), p );
-        }
-    }
-    FTSMSGDBG( in_Msg, in_iDbgLv);
-}
-template<>
-void FTSMSGDBG( std::string in_Msg, int in_iDbgLv)
-{
-    std::cout << in_Msg;
-}
-
-template<typename... Ts>
-void FTS18N( std::string in_Msg, FTS::MsgType::Enum in_Gravity , Ts... params )
-{
-    std::vector<std::string> args;
-    pack_param( args, params... );
-    int i = 1;
-    for( auto p : args ) {
-        std::string fmt = "{" + toString( i ) + "}";
-        auto pos = in_Msg.find( fmt );
-        if( pos != std::string::npos ) {
-            in_Msg.replace( pos, fmt.size(), p );
-        }
-    }
-    FTS18N( in_Msg, in_Gravity);
-}
-
-template<>
-void FTS18N( std::string in_Msg, FTS::MsgType::Enum in_Gravity )
-{
-    std::cout << in_Msg;
-}
 
 using namespace FTS;
 
@@ -134,7 +78,7 @@ std::string toHexString( const char* buf, int len )
     out.fill( ' ' );
     out.flags( std::ios::hex );
     for( int i = 0; i < len; ++i ) {
-        out << *buf++;
+        out << (int)*buf++;
     }
     return out.str();
 }
@@ -142,7 +86,7 @@ std::string toHexString( const char* buf, int len )
 void netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
 {
     const std::string sHex = toHexString(in_pBuf, in_uiLen);
-    const std::string sIdent = toString(reinterpret_cast<const uint32_t>(id), 4, '0', std::ios_base::hex );
+    const std::string sIdent = toString(reinterpret_cast<const uint64_t>(id), 4, '0', std::ios_base::hex );
     std::string sMsg = "<" + sIdent + ">" + in_s + ": " + toString( in_uiLen ) + " Bytes: " + sHex + " (\"";
     for(uint32_t i = 0 ; i < in_uiLen ; i++) {
         // Replace control characters by a space for output.
@@ -153,7 +97,7 @@ void netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const c
         }
     }
 
-    sMsg += "\"";
+    sMsg += "\")";
     netlog(sMsg);
 }
 #else

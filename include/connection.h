@@ -21,10 +21,11 @@
 
 #endif
 
-using SOCKADDR_IN = sockaddr_in;
+using SOCKADDR_IN = struct sockaddr_in;
 
 #include <list>
 #include <sstream>
+#include <algorithm>
 
 #ifndef SOCKET_ERROR
 #  define SOCKET_ERROR -1
@@ -34,19 +35,6 @@ using SOCKADDR_IN = sockaddr_in;
 
 #define FTSC_TIME_OUT      1000    ///< time out value in milliseconds
 #define FTSC_MAX_QUEUE_LEN 32      ///< The longest queue we shall have. If queue gets longer, drop it.
-
-template <class T>
-static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, char in_cFill = ' ', std::ios_base::fmtflags in_fmtfl = std::ios::dec, typename std::enable_if< std::is_integral<T>::value >::type* = 0 )
-{
-    std::stringstream out;
-    out.width( in_iWidth );
-    out.fill( in_cFill );
-    out.flags( in_fmtfl );
-
-    out << t;
-    return out.str();
-}
-
 
 enum class FTSC_ERR {
     OK            =  0, ///< No error.
