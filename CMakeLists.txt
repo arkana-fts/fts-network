@@ -45,7 +45,6 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
 source_group( Source FILES ${src})
 source_group( Header FILES ${hdr})
-#source_group( Logger FILES ${FTS_LOGGER_SRC})
 source_group( Utility FILES ${FTS_UTIL_SRC})
 endif()
 
