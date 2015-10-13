@@ -34,7 +34,7 @@ endif()
 set( FTS_DIR "" CACHE PATH "Path to the FTS root src directory" )
 
 set( src ./src/connection.cpp ./src/packet.cpp ./src/Logger.cpp)
-set( hdr ./include/connection.h ./include/packet.h ./include/packet_header.h ./include/Logger.h ./include/TextFormatting.h)
+set( hdr ./include/connection.h ./include/packet.h ./include/packet_header.h ./include/Logger.h ./include/TextFormatting.h ./include/dsrv_constants.h)
 set( FTS_UTIL_SRC ${FTS_DIR}/utilities/DataContainer.cpp ${FTS_DIR}/utilities/threading.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${FTS_DIR})
