@@ -9,27 +9,8 @@
 #ifndef FTS_CONNECTION_H
 #define FTS_CONNECTION_H
 
-#if defined( _WIN32 )
-#  include <Winsock2.h>
-#  define WINDOOF 1
-#else
-#  include <sys/types.h>
-#  include <sys/socket.h>
-#  include <netinet/in.h>
-#  include <netinet/ip.h>
-   using SOCKET = int;
-
-#endif
-
-using SOCKADDR_IN = struct sockaddr_in;
-
 #include <list>
-#include <sstream>
-#include <algorithm>
-
-#ifndef SOCKET_ERROR
-#  define SOCKET_ERROR -1
-#endif
+#include <unordered_map>
 
 #include "packet.h"
 
@@ -50,15 +31,18 @@ enum class FTSC_ERR {
     INVALID_INPUT = -10, ///< Invalid method parameter. Usually a nullptr.
 };
 
+// Holds for each request the recv and send counts.
+using PacketStats = std::unordered_map<master_request_t, std::pair<uint64_t, uint64_t>>;
+
 namespace FTS {
-    class RawDataContainer;
 
 /// The FTS connection class
 /** This class represents an abstract connection.
  *  It may be implemented as a connection over tcp/ip, over serial,
  *  over pipes or whatever you want.
  **/
-class Connection {
+class Connection 
+{
 public:
     virtual ~Connection() {};
 
@@ -69,6 +53,7 @@ public:
         D_CONNECTION_ONDEMAND_SRV = 0x2
     } ;
 
+    static Connection* create( eConnectionType type, const std::string &in_sName, std::uint16_t in_usPort, std::uint64_t in_ulTimeoutInMillisec );
     virtual eConnectionType getType() const = 0;
 
     virtual bool isConnected() = 0;
@@ -83,6 +68,7 @@ public:
     virtual FTSC_ERR mreq(Packet *in_pPacket) = 0;
 
     virtual void setMaxWaitMillisec( std::uint64_t in_ulMaxWaitMillisec ) { m_maxWaitMillisec = in_ulMaxWaitMillisec; }
+    PacketStats getPacketStats() { return m_statPackets; }
 protected:
     std::list<Packet *>m_lpPacketQueue; ///< A queue of packets that have been received but not consumed. Most recent are at the back.
     std::uint64_t m_maxWaitMillisec;         ///< Time out in millisec for all socket calls.
@@ -90,63 +76,11 @@ protected:
     Connection() : m_maxWaitMillisec( FTSC_TIME_OUT ) {};
     virtual Packet *getFirstPacketFromQueue(master_request_t in_req = DSRV_MSG_NONE);
     virtual void queuePacket(Packet *in_pPacket);
-};
-
-int getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
-FTS::RawDataContainer *getHTTPFile(const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
-int downloadHTTPFile(const std::string &in_sServer, const std::string &in_sPath, const std::string &in_sLocal, std::uint64_t in_ulMaxWaitMillisec);
-
-/// A Traditional TCP/IP implementation of the connection class.
-/**
- * This class is an implementation of the Connection class and implements
- * a network connection over TCP/IP using sockets.\n
- * \n
- * The connection is done one time
- * and then never done again. At the end, the connection is closed.\n
- * \n
- * Read more details
- * about it in our DokuWiki design documents->networking section, direct link:
- * http://wiki.arkana-fts.org/doku.php?id=design_documents:networking:src:connection_types
- **/
-class TraditionalConnection : public Connection {
-    friend class OnDemandHTTPConnection;
-    friend int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
-
-public:
-    TraditionalConnection(const std::string &in_sName, std::uint16_t in_usPort, std::uint64_t in_ulTimeoutInMillisec);
-    TraditionalConnection(SOCKET in_sock, SOCKADDR_IN in_sa);
-    virtual ~TraditionalConnection();
-
-    eConnectionType getType() const { return eConnectionType::D_CONNECTION_TRADITIONAL; }
-
-    virtual bool isConnected();
-    virtual void disconnect();
-
-    virtual std::string getCounterpartIP() const;
-
-    virtual Packet *waitForThenGetPacket(bool in_bUseQueue = true);
-    virtual Packet *getPacketIfPresent(bool in_bUseQueue = true);
-    virtual Packet *getReceivedPacketIfAny() ;
-
-    virtual Packet *waitForThenGetPacketWithReq(master_request_t in_req);
-    virtual Packet *getPacketWithReqIfPresent(master_request_t in_req);
-
-    virtual FTSC_ERR send( Packet *in_pPacket );
-    virtual FTSC_ERR mreq(Packet *in_pPacket);
-
-    static int setSocketBlocking(SOCKET out_socket, bool in_bBlocking);
-
-protected:
-    bool m_bConnected;              ///< Wether the connection is up or not.
-    SOCKET m_sock;                  ///< The connection socket.
-    SOCKADDR_IN m_saCounterpart;    ///< This is the address of our counterpart.
-
-    FTSC_ERR connectByName( std::string in_sName, std::uint16_t in_usPort);
-    virtual Packet *getPacket(bool in_bUseQueue);
-    virtual FTSC_ERR get_lowlevel(void *out_pBuf, std::uint32_t in_uiLen);
-    virtual std::string getLine(const std::string in_sLineEnding);
-
-    virtual FTSC_ERR send( const void *in_pData, std::uint32_t in_uiLen );
+    // Statistical information
+    void addSendPacketStat( Packet* p );
+    void addRecvPacketStat( Packet* p );
+private:
+    PacketStats m_statPackets;
 };
 
 }
