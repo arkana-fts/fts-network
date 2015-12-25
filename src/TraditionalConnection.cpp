@@ -418,7 +418,8 @@ std::string FTS::TraditionalConnection::getLine(const std::string in_sLineEnding
         sLine.push_back( byte[0] );
 
         // Got an end of line?
-        if(sLine.substr(sLine.length() - in_sLineEnding.length(), in_sLineEnding.length()) == in_sLineEnding) {
+        auto pos = sLine.rfind( in_sLineEnding );
+        if( pos != std::string::npos ) {
             return sLine;
         }
     }
@@ -925,13 +926,22 @@ int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sSer
     tradConn.send(sToSend.c_str(), sToSend.length());
 
     // The first line we get is very interesting: the status.
+    // According to the RFC2616:
+    // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+    // HTTP-Version   = "HTTP" "/" 1*DIGIT "." 1*DIGIT
+    // The Status-Code element is a 3-digit integer result code
     std::string sLine = tradConn.getLine("\r\n");
-    std::string sCode = sLine.substr(9,sLine.length()-12);
-    if(sCode != "200") {
-        // 200 means OK.
+    auto pos = sLine.find( "HTTP/" );
+    if( pos != std::string::npos ) {
+        std::string sCode = sLine.substr( pos + 9, 3 );
+        if( sCode != "200" ) {
+            // 200 means OK.
+            return -2;
+        }
+    } else {
+        // The code can't be found.
         return -2;
     }
-
     // The following loop reads out the HTTP header and gets the data size.
     uint64_t uiFileSize = 0;
     while(true) {
