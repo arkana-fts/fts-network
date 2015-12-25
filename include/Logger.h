@@ -89,14 +89,19 @@ void FTS18N( std::string in_Msg, FTS::MsgType in_Gravity, Ts... params )
     std::vector<std::string> args;
     pack_param( args, params... );
     int i = 1;
+    std::string addToTheEnd;
     for( auto p : args ) {
         std::string fmt = "{" + toString( i++ ) + "}";
         auto pos = in_Msg.find( fmt );
         if( pos != std::string::npos ) {
             in_Msg.replace( pos, fmt.size(), p );
+        } else {
+            // In case there is nor parameter, just concatenate the parameter.
+            // This is currently the case since the original has a translation in between which contains the format specifier.
+            addToTheEnd += " " + p;
         }
     }
-    FTS18N( in_Msg, in_Gravity );
+    FTS18N( in_Msg + addToTheEnd, in_Gravity );
 }
 
 template<>
