@@ -35,6 +35,10 @@ enum class FTSC_ERR {
 using PacketStats = std::unordered_map<master_request_t, std::pair<uint64_t, uint64_t>>;
 
 namespace FTS {
+class RawDataContainer;
+
+RawDataContainer *getHTTPFile( const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec );
+int downloadHTTPFile( const std::string &in_sServer, const std::string &in_sPath, const std::string &in_sLocal, std::uint64_t in_ulMaxWaitMillisec );
 
 /// The FTS connection class
 /** This class represents an abstract connection.

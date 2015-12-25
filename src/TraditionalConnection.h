@@ -43,8 +43,6 @@ namespace FTS {
     class RawDataContainer;
 
 int getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
-FTS::RawDataContainer *getHTTPFile(const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
-int downloadHTTPFile(const std::string &in_sServer, const std::string &in_sPath, const std::string &in_sLocal, std::uint64_t in_ulMaxWaitMillisec);
 
 /// A Traditional TCP/IP implementation of the connection class.
 /**
