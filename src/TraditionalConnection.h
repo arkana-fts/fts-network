@@ -81,7 +81,7 @@ public:
 
     virtual FTSC_ERR send( Packet *in_pPacket );
     virtual FTSC_ERR mreq(Packet *in_pPacket);
-    static int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBlocking );
+    static int setSocketBlocking( SOCKET in_socket, bool in_bBlocking );
 
 protected:
     bool m_bConnected;              ///< Wether the connection is up or not.
