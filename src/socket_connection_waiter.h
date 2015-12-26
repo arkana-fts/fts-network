@@ -14,6 +14,9 @@
 
 #if defined(_WIN32)
 #include <WinSock2.h>
+#else
+ // windows compatibility.
+using SOCKET = int;
 #endif
 
 namespace FTS {
