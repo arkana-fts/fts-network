@@ -11,6 +11,7 @@
 
 #include <list>
 #include <unordered_map>
+#include <cstdint>
 
 #include "packet.h"
 
@@ -32,7 +33,7 @@ enum class FTSC_ERR {
 };
 
 // Holds for each request the recv and send counts.
-using PacketStats = std::unordered_map<master_request_t, std::pair<uint64_t, uint64_t>>;
+using PacketStats = std::unordered_map<master_request_t, std::pair<std::uint64_t, std::uint64_t>>;
 
 namespace FTS {
 class RawDataContainer;
