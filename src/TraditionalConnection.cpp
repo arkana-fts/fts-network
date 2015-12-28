@@ -19,8 +19,6 @@
 #include "packet.h"
 #include "Logger.h"
 
-#include "utilities/DataContainer.h"
-
 #if !defined( _WIN32 )
 #  include <unistd.h>
 #  include <poll.h>
@@ -914,12 +912,12 @@ int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBl
  *
  * \author Pompei2
  */
-int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec)
+FTSC_ERR FTS::getHTTPFile( std::vector<uint8_t>& out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec)
 {
     // We connect using the traditional connection.
     TraditionalConnection tradConn(in_sServer, 80, in_ulMaxWaitMillisec);
     if(!tradConn.isConnected())
-        return -1;
+        return FTSC_ERR::NOT_CONNECTED;
 
     // Send the request to get that file.
     std::string sToSend = "GET http://" + in_sServer + in_sPath + " HTTP/1.0\r\n\r\n";
@@ -936,11 +934,11 @@ int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sSer
         std::string sCode = sLine.substr( pos + 9, 3 );
         if( sCode != "200" ) {
             // 200 means OK.
-            return -2;
+            return FTSC_ERR::INVALID_INPUT;
         }
     } else {
         // The code can't be found.
-        return -2;
+        return FTSC_ERR::INVALID_INPUT;
     }
     // The following loop reads out the HTTP header and gets the data size.
     uint64_t uiFileSize = 0;
@@ -963,48 +961,18 @@ int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sSer
 
     // Did not get any header about the data length.
     if(uiFileSize == 0)
-        return -3;
+        return FTSC_ERR::INVALID_INPUT;
 
     // Get the memory to write the data in.
-    out_data.resize(uiFileSize);
+    out_data.resize( uiFileSize, 0 );
 
     // Get the data.
-    if( FTSC_ERR::OK != tradConn.get_lowlevel(out_data.getData(), static_cast<uint32_t>(uiFileSize)) ) {
-        return -4;
+    auto err = tradConn.get_lowlevel( out_data.data(), static_cast<uint32_t>(uiFileSize));
+    if( FTSC_ERR::OK != err ) {
+        return err;
     }
 
-    return 0;
-}
-
-/// Gets a file via HTTP.
-/** This sends an HTTP server the request to get a file and then gets that file
- *  from the server.
- *
- * \param in_sServer The server address to connect to, ex: arkana-fts.org
- * \param in_sPath The path to the file on the server, ex: /path/to/file.ex
- * \param out_uiFileSize Will be set to the size of the data that will be returned.
- *
- * \return If successful:  A new DataContainer containing the file.
- * \return If failed:       NULL
- *
- * \note The DataContainer object you get should be deleted by you.
- * \note On linux, only an exactitude of 1-10 millisecond may be achieved. Anyway, on most PC's
- *       an exactitude of more the 10ms is nearly never possible.
- * \note Although the \a out_uiFileSize is a 64-bit unsigned integer, the
- *       support for large files (>4GB) is not implemented yet.
- *
- * \author Pompei2
- */
-FTS::RawDataContainer *FTS::getHTTPFile(const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec)
-{
-    // Get the memory to write the data in.
-    FTS::RawDataContainer *pdc = new FTS::RawDataContainer(0);
-
-    if( 0 != FTS::getHTTPFile( *pdc, in_sServer, in_sPath, in_ulMaxWaitMillisec ) ) {
-        delete pdc;
-        pdc = nullptr;
-    }
-    return pdc;
+    return FTSC_ERR::OK;
 }
 
 /// Downloads a file via HTTP and saves it locally.
@@ -1029,22 +997,21 @@ FTS::RawDataContainer *FTS::getHTTPFile(const std::string &in_sServer, const std
  */
 int FTS::downloadHTTPFile(const std::string &in_sServer, const std::string &in_sPath, const std::string &in_sLocal, std::uint64_t in_ulMaxWaitMillisec)
 {
-    FTS::DataContainer *pData = FTS::getHTTPFile(in_sServer, in_sPath, in_ulMaxWaitMillisec);
-    if(pData == nullptr)
+    std::vector<uint8_t> Data;
+    auto err = FTS::getHTTPFile(Data, in_sServer, in_sPath, in_ulMaxWaitMillisec);
+    if(err != FTSC_ERR::OK)
         return -1;
 
     FILE *pFile = fopen(in_sLocal.c_str(), "w+b");
     if(!pFile) {
         FTS18N("File_FopenW", MsgType::Error, in_sLocal, strerror(errno));
-        delete pData;
         return -2;
     }
 
-    bool bSuccess = fwrite(pData->getData(), static_cast<size_t>(pData->getSize()), 1, pFile) == 1;
+    bool bSuccess = fwrite(Data.data(), Data.size(), 1, pFile) == 1;
     if(!bSuccess)
         FTS18N("File_Write", MsgType::Error, in_sLocal, strerror(errno));
 
-    delete pData;
     fclose(pFile);
 
     return bSuccess ? 0 : -3;

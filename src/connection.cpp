@@ -19,7 +19,6 @@
 #include "packet.h"
 #include "Logger.h"
 #include "TraditionalConnection.h"
-#include "utilities/DataContainer.h"
 
 #if defined( _WIN32 )
 #  if defined(_DEBUG)

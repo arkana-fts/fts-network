@@ -10,7 +10,6 @@
 #define FTS_SOCKETCONNECTIONWAITER_H
 
 #include "connection_waiter.h"
-#include <utilities/threading.h>
 
 #if defined(_WIN32)
 #include <WinSock2.h>
@@ -31,7 +30,6 @@ public:
 
 protected:
     SOCKET m_listenSocket;       ///< The socket that has been prepared for listening.
-    FTS::Mutex m_mutex;           ///< Mutex for the connections list.
     unsigned short m_port;      ///< For debugging hold the port no we listening.
     std::function<void( FTS::Connection* )> m_cb;
 };

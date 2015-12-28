@@ -40,9 +40,6 @@ using SOCKADDR_IN = struct sockaddr_in;
 
 
 namespace FTS {
-    class RawDataContainer;
-
-int getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
 
 /// A Traditional TCP/IP implementation of the connection class.
 /**
@@ -58,7 +55,7 @@ int getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, 
  **/
 class TraditionalConnection : public Connection {
     friend class OnDemandHTTPConnection;
-    friend int FTS::getHTTPFile(FTS::RawDataContainer &out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec);
+    friend FTSC_ERR getHTTPFile( std::vector<uint8_t>& out_data, const std::string &in_sServer, const std::string &in_sPath, std::uint64_t in_ulMaxWaitMillisec );
 
 public:
     TraditionalConnection(const std::string &in_sName, std::uint16_t in_usPort, std::uint64_t in_ulTimeoutInMillisec);

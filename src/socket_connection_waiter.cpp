@@ -74,6 +74,24 @@ int FTS::SocketConnectionWaiter::init(std::uint16_t in_usPort, std::function<voi
     return ERR_OK;
 }
 
+void printSocketError()
+{
+    if( errno == EAGAIN || errno == EWOULDBLOCK ) {
+        return;
+    } else {
+    #if defined(_WIN32)
+        auto err = WSAGetLastError();
+        if( err == WSAEWOULDBLOCK ) {
+            return ;
+        }
+        FTSMSG( "[ERROR] socket accept: " + toString( err ), MsgType::Error );
+    #else
+        // Some error ... but continue waiting for a connection.
+        FTSMSG( "[ERROR] socket accept: " + string( strerror( errno ) ), MsgType::Error );
+    #endif
+    }
+}
+
 bool FTS::SocketConnectionWaiter::waitForThenDoConnection(std::int64_t in_ulMaxWaitMillisec)
 {
     auto startTime = std::chrono::steady_clock::now();
@@ -87,38 +105,17 @@ bool FTS::SocketConnectionWaiter::waitForThenDoConnection(std::int64_t in_ulMaxW
 
         SOCKADDR_IN clientAddress;
         socklen_t iClientAddressSize = sizeof( clientAddress );
-        SOCKET connectSocket;
-        if( (connectSocket = accept( m_listenSocket, ( sockaddr * ) & clientAddress, &iClientAddressSize )) != -1 ) {
+        SOCKET connectSocket = accept( m_listenSocket, (sockaddr *) & clientAddress, &iClientAddressSize );
+        if( connectSocket != -1 ) {
             // Yeah, we got someone !
-            
+
             // Build up a class that will work this connection.
-            Connection *pCon = new TraditionalConnection(connectSocket, clientAddress);
+            Connection *pCon = new TraditionalConnection( connectSocket, clientAddress );
             m_cb( pCon );
             return true;
-
-        } else if(errno == EAGAIN || errno == EWOULDBLOCK) {
-            // yoyo, wait a bit to avoid megaload of cpu. 1000 microsec = 1 millisec.
-            std::this_thread::sleep_for( std::chrono::milliseconds(1) );
-            continue;
         } else {
-#if WINDOOF
-            if ( connectSocket == INVALID_SOCKET)
-            {
-                auto err = WSAGetLastError();
-                if ( err == WSAEWOULDBLOCK )
-                {
-                    // yoyo, wait a bit to avoid megaload of cpu. 1000 microsec = 1 millisec.
-                    std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-                    continue;
-                }
-                
-                FTSMSG( "[ERROR] socket accept: " + toString( err ), MsgType::Error );
-            }
-
-#endif
-            // Some error ... but continue waiting for a connection.
-            FTSMSG("[ERROR] socket accept: "+string(strerror(errno)), MsgType::Error);
-            // yoyo, wait a bit to avoid megaload of cpu. 1000 microsec = 1 millisec.
+            printSocketError();
+            // Even if an error occured we don't leave.
             std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
             continue;
         }
