@@ -9,6 +9,7 @@
 #ifndef FTS_CONNECTION_H
 #define FTS_CONNECTION_H
 
+#include <vector>
 #include <list>
 #include <unordered_map>
 #include <cstdint>
@@ -59,7 +60,6 @@ public:
 
     static Connection* create( eConnectionType type, const std::string &in_sName, std::uint16_t in_usPort, std::uint64_t in_ulTimeoutInMillisec );
     virtual eConnectionType getType() const = 0;
-
     virtual bool isConnected() = 0;
     virtual void disconnect() = 0;
 
@@ -76,7 +76,7 @@ public:
 protected:
     std::list<Packet *>m_lpPacketQueue; ///< A queue of packets that have been received but not consumed. Most recent are at the back.
     std::uint64_t m_maxWaitMillisec;         ///< Time out in millisec for all socket calls.
-    
+
     Connection() : m_maxWaitMillisec( FTSC_TIME_OUT ) {};
     virtual Packet *getFirstPacketFromQueue(master_request_t in_req = DSRV_MSG_NONE);
     virtual void queuePacket(Packet *in_pPacket);
