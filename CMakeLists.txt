@@ -32,9 +32,9 @@ else()
     add_definitions(-fpermissive)
 endif()
 
-set( src ./src/connection.cpp ./src/TraditionalConnection.cpp ./src/packet.cpp ./src/Logger.cpp ./src/socket_connection_waiter.cpp ./src/connection_waiter.cpp)
+set( src ./src/fts-net.cpp ./src/connection.cpp ./src/TraditionalConnection.cpp ./src/packet.cpp ./src/Logger.cpp ./src/socket_connection_waiter.cpp ./src/connection_waiter.cpp)
 set( src_h ./src/TraditionalConnection.h ./src/socket_connection_waiter.h )
-set( hdr ./include/connection.h ./include/packet.h ./include/packet_header.h ./include/Logger.h ./include/TextFormatting.h ./include/dsrv_constants.h ./include/connection_waiter.h)
+set( hdr ./include/fts-net.h ./include/connection.h ./include/packet.h ./include/packet_header.h ./include/Logger.h ./include/TextFormatting.h ./include/dsrv_constants.h ./include/connection_waiter.h)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 if(MSVC)
