@@ -11,7 +11,6 @@
 
 #if defined( _WIN32 )
 #  include <Winsock2.h>
-#  define WINDOOF 1
 #else
 #  include <sys/types.h>
 #  include <sys/socket.h>

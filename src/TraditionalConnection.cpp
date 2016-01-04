@@ -220,7 +220,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
     hostent *serverInfo = nullptr;
 
     // Setup the connection socket.
-#if WINDOOF
+#if defined(_WIN32)
     if( (m_sock = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP )) == INVALID_SOCKET ) {
 #else
     if((m_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -262,7 +262,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
             FTSMSGDBG( "Successful connected.\n", 0 );
             m_bConnected = true;
             return FTSC_ERR::OK;
-#if WINDOOF
+#if defined(_WIN32)
         } else if(WSAGetLastError() == WSAEISCONN) {
 #else
         } else if(errno == EISCONN) {
@@ -271,7 +271,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
             m_bConnected = true;
             return FTSC_ERR::OK;
 
-#if WINDOOF
+#if defined(_WIN32)
 #else
         } else if(errno == EINPROGRESS) {
             // Need to wait for the socket to be available.
@@ -307,7 +307,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
 #endif
 
             // There was another error then the retry/in progress/busy error.
-#if WINDOOF
+#if defined(_WIN32)
         } else if(WSAGetLastError() != WSAEWOULDBLOCK &&
                   WSAGetLastError() != WSAEALREADY &&
                   WSAGetLastError() != WSAEINVAL) {
@@ -328,7 +328,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
         currentTime = std::chrono::steady_clock::now();
     } while( std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() < m_maxWaitMillisec);
 
-#if WINDOOF
+#if defined(_WIN32)
     FTS18N( "Net_TCPIP_connect_to", MsgType::Error, in_sName, toString(in_usPort), "Timed out (maybe the counterpart is down)", toString(WSAGetLastError( )) );
 #else
     FTS18N( "Net_TCPIP_connect_to", MsgType::Error, in_sName, toString(in_usPort), std::string(strerror( errno )), toString(errno) );
@@ -363,7 +363,7 @@ FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::uint32_t 
     do {
         auto startTime = steady_clock::now();
         read = ::recv( m_sock, (char *) buf, to_read, 0 );
-#if WINDOOF
+#if defined(_WIN32)
         auto errorno = WSAGetLastError();
         if( read == SOCKET_ERROR && (errorno == WSAEINTR || errorno == WSATRY_AGAIN || errorno == WSAEWOULDBLOCK) ) {
 #else
@@ -464,7 +464,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
     using namespace std::chrono;
     auto startTime = steady_clock::now();
 
-#if WINDOOF
+#if defined(_WIN32)
     fd_set fdr;
     timeval tv = {0, (long) 10000 }; // 10ms
 
@@ -747,7 +747,7 @@ FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::uint32_t i
     const int8_t *buf = (const int8_t *)in_pData;
 
     do {
-#if WINDOOF
+#if defined(_WIN32)
         iSent = ::send(m_sock, (const char *)buf, uiToSend, 0);
         if(iSent == SOCKET_ERROR && (WSAGetLastError() == WSAEINTR ||
                                      WSAGetLastError() == WSATRY_AGAIN ||
@@ -858,7 +858,7 @@ FTSC_ERR FTS::TraditionalConnection::mreq(Packet *out_pPacket)
 */
 int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBlocking )
 {
-#if WINDOOF
+#if defined(_WIN32)
     u_long ulMode = in_bBlocking ? 0 : 1;
 
     return ioctlsocket( in_socket, FIONBIO, &ulMode );
@@ -900,8 +900,7 @@ int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBl
  * \param in_sPath The path to the file on the server, ex: /path/to/file.ex
  * \param out_uiFileSize Will be set to the size of the data that will be returned.
  *
- * \return If successfull:  ERR_OK=0.
- * \return If failed:       An error code < 0
+ * \return FTSC_ERR code 
  *
  * \note The DataContainer object you give will be resized to match the file's
  *       size and the content will then be overwritten.
