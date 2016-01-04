@@ -9,4 +9,7 @@
 
 namespace FTS {
 
+int Logger::dbg_level = 0;
+std::recursive_mutex Logger::mtx;
+
 }

@@ -6,8 +6,10 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <mutex>
 
 #include "TextFormatting.h"
+
 
 namespace FTS {
 
@@ -40,6 +42,18 @@ enum class MsgType
     Raw
 };
 
+class Logger
+{
+public:
+    Logger() = delete;
+    static void DbgLevel( int lvl ) { dbg_level = lvl; }
+    static int DbgLevel() { return dbg_level; }
+    static void Lock() { mtx.lock(); }
+    static void Unlock() { mtx.unlock(); }
+private:
+    static int dbg_level;
+    static std::recursive_mutex mtx;
+};
 
 template<typename T>
 void pack_param( std::vector<std::string>& pack, T first )
@@ -72,7 +86,11 @@ void FTSMSGDBG( std::string in_Msg, int in_iDbgLv, Ts... params )
 template<>
 inline void FTSMSGDBG( std::string in_Msg, int in_iDbgLv )
 {
-    std::cout << in_Msg << std::endl;
+    if( in_iDbgLv <= Logger::DbgLevel() ) {
+        Logger::Lock();
+        std::cout << in_Msg << std::endl;
+        Logger::Unlock();
+    }
 }
 
 template<typename... Ts>
@@ -119,7 +137,7 @@ void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity, Ts... params )
 }
 
 template<>
-inline void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity)
+inline void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity )
 {
     std::cout << in_Msg << std::endl;
 }

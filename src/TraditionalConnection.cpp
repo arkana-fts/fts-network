@@ -47,10 +47,11 @@ using namespace FTS;
 #define D_DEBUG_QUEUE
 #endif
 /// TODO: Add better logging of what travels trough the net maybe ?
-#define NETLOG 1
-#if NETLOG && defined(DEBUG)
-void netlog(const std::string &in_s)
+void TraditionalConnection::netlog(const std::string &in_s)
 {
+    if( Logger::DbgLevel() == 0 ) {
+        return;
+    }
     FTSMSGDBG(in_s+"\n", 5);
 }
 std::string toHexString( const char* buf, int len )
@@ -65,8 +66,12 @@ std::string toHexString( const char* buf, int len )
     return out.str();
 }
 
-void netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
+void TraditionalConnection::netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
 {
+    if( Logger::DbgLevel() == 0 ) {
+        return;
+    }
+
     const std::string sHex = toHexString(in_pBuf, in_uiLen);
     const std::string sIdent = toString(reinterpret_cast<const uint64_t>(id), 4, '0', std::ios_base::hex );
     std::string sMsg = "<" + sIdent + ">" + in_s + ": " + toString( in_uiLen ) + " Bytes: " + sHex + " (\"";
@@ -82,10 +87,6 @@ void netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const c
     sMsg += "\")";
     netlog(sMsg);
 }
-#else
-#  define netlog(a)
-#  define netlog2(a, b, c, d)
-#endif
 
 /// Creates the connection object and connect.
 /** This creates the connection object and tries to connect to the specified

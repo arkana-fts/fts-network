@@ -90,6 +90,11 @@ protected:
     virtual std::string getLine(const std::string in_sLineEnding);
 
     virtual FTSC_ERR send( const void *in_pData, std::uint32_t in_uiLen );
+
+private:
+    void netlog( const std::string &in_s ); 
+    void netlog2( const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf );
+
 };
 
 }
