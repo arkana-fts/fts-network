@@ -22,12 +22,6 @@ enum class MsgType
     **/
     Warning,
 
-    /** Print out a warning without displaying a messagebox. That is when
-    *  something strange occurs but the game should continue running
-    *  without disturbing the player with a messagebox.
-    **/
-    WarningNoMB,
-
     /** Prints out an error message, that means something that is fatal
     *  to the normal game so it can't continue.
     **/
@@ -40,10 +34,8 @@ enum class MsgType
 
     /// This is a positive massage that should be displayed in green within a dialogbox.
     GoodMessage,
-    /// This is just a simple message that gets also displayed in a dialogbox.
-    Message,
     /// This is just a simple message that gets displayed in the console and logfile.
-    MessageNoMB,
+    Message,
     /// This is just a simple message that gets displayed only in console.
     Raw
 };
