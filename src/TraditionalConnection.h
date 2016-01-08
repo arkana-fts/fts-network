@@ -62,11 +62,9 @@ public:
     virtual std::string getCounterpartIP() const;
 
     virtual Packet *waitForThenGetPacket(bool in_bUseQueue = true);
-    virtual Packet *getPacketIfPresent(bool in_bUseQueue = true);
     virtual Packet *getReceivedPacketIfAny() ;
 
     virtual Packet *waitForThenGetPacketWithReq(master_request_t in_req);
-    virtual Packet *getPacketWithReqIfPresent(master_request_t in_req);
 
     virtual FTSC_ERR send( Packet *in_pPacket );
     virtual FTSC_ERR mreq(Packet *in_pPacket);
@@ -78,7 +76,7 @@ protected:
     SOCKADDR_IN m_saCounterpart;    ///< This is the address of our counterpart.
 
     FTSC_ERR connectByName( std::string in_sName, std::uint16_t in_usPort);
-    virtual Packet *getPacket(bool in_bUseQueue);
+    virtual Packet *getPacket(bool in_bUseQueue, uint64_t timeOut = 0);
     virtual FTSC_ERR get_lowlevel(void *out_pBuf, std::uint32_t in_uiLen);
     virtual std::string getLine(const std::string in_sLineEnding);
 

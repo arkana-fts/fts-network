@@ -144,7 +144,11 @@ FTS::TraditionalConnection::~TraditionalConnection()
  */
 Packet *FTS::TraditionalConnection::getReceivedPacketIfAny()
 {
-    return getFirstPacketFromQueue();
+    auto p = getFirstPacketFromQueue();
+    if( p )
+        return p;
+
+    return getPacket(false, 10);
 }
 
 /// Check if i'm connected.
@@ -446,7 +450,7 @@ std::string FTS::TraditionalConnection::getLine(const std::string in_sLineEnding
  *
  * \author Pompei2
  */
-Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
+Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue, uint64_t timeOut)
 {
     if(!m_bConnected) {
         FTS18N("InvParam", MsgType::Horror, "FTS::Connection::recv");
@@ -461,10 +465,13 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
     }
 
     int serr = 0;
-
+    auto useTimeOut = m_maxWaitMillisec;
+    if( timeOut ) {
+        useTimeOut = timeOut;
+    }
 #if defined(_WIN32)
     fd_set fdr;
-    timeval tv = { 0, (long) m_maxWaitMillisec * 1000 }; 
+    timeval tv = { 0, (long) useTimeOut * 1000 }; 
 
     FD_ZERO( &fdr );
     FD_SET( m_sock, &fdr );
@@ -485,7 +492,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
         if( m_maxWaitMillisec == ((uint64_t) (-1)) )
             serr = ::poll( &pfd, 1, -1 );
         else
-            serr = ::poll( &pfd, 1, (int) m_maxWaitMillisec /*ms*/ );
+            serr = ::poll( &pfd, 1, (int) useTimeOut /*ms*/ );
     } while( serr == SOCKET_ERROR && errno == EINTR );
 #endif
 
@@ -592,26 +599,6 @@ Packet *FTS::TraditionalConnection::waitForThenGetPacket(bool in_bUseQueue)
     return this->getPacket(in_bUseQueue);
 }
 
-/// Checks for and then receives any packet.
-/** This first (by default) looks in the message queue, if there is any message,
- *  it returns that message and removes it from the queue. If the queue is empty
- *  or shall not be used, it checks if a message is coming over the net. If ther is,
- *  it retrieves it. If there is none, it returns NULL immediately.
- *
- * \param in_bUseQueue Use the queue or just ignore it ?
- *
- * \return If successful: A pointer to the packet.
- * \return If failed:      NULL
- *
- * \note The user has to free the returned value !
- *
- * \author Pompei2
- */
-Packet *FTS::TraditionalConnection::getPacketIfPresent(bool in_bUseQueue)
-{
-    return this->getPacket(in_bUseQueue);
-}
-
 /// Waits for and then receives a certain packet.
 /** This first looks in the message queue, if there is a certain message,
  *  it returns that message and removes it from the queue. If the queue is empty,
@@ -648,7 +635,7 @@ Packet *FTS::TraditionalConnection::waitForThenGetPacketWithReq(master_request_t
     do {
         // We don't want recv to handle the queue as we would again add
         // messages to the queue that would cause infinite recursion.
-        p = this->waitForThenGetPacket(false);
+        p = this->getPacket(false);
 
         // Nothing got in time, bye.
         if(!p)
@@ -665,53 +652,6 @@ Packet *FTS::TraditionalConnection::waitForThenGetPacketWithReq(master_request_t
         this->queuePacket(p);
     } while(true);
 
-    return nullptr;
-}
-
-/// Checks for and then receives a certain packet.
-/** This first looks in the message queue, if there is a certain message,
- *  it returns that message and removes it from the queue. If the queue is empty,
- *  it checks if a certain message is coming over the net. If there is,
- *  it retrieves it. If there is none, it returns NULL immediately.\n
- *  If there is a message with the wrong request ID, it is queued and tried again.\n
- *  A _certain_ message means a message with a special request ID (as in \a in_req ).
- *
- * \param in_req The request ID of the message to wait for (DSRV_MSG_XXX).
- *
- * \return If successful: A pointer to the packet.
- * \return If failed:      NULL
- *
- * \note The user has to free the returned value !
- * \note If the queue is full, the first messages put in it are dropped!
- *
- * \author Pompei2
- */
-Packet *FTS::TraditionalConnection::getPacketWithReqIfPresent(master_request_t in_req)
-{
-    // Check for valid packet request ID's.
-    if(in_req == DSRV_MSG_NONE || in_req > DSRV_MSG_MAX)
-        return nullptr;
-
-    // We need to check the queue ourselves to avoid infinite recursion:
-    Packet *p = this->getFirstPacketFromQueue(in_req);
-    if(p)
-        return p;
-
-    // Nothing in the queue, check for a message.
-    while( (p = this->getPacketIfPresent( true )) != nullptr ) {
-
-        // Check if this is the packet we want.
-        if( p->getType() == in_req) {
-            FTSMSGDBG( "Accepted packet with ID 0x{1}, payload len: {2}", 5,
-                      toString(p->getType(), -1, ' ', std::ios::hex), toString(p->getPayloadLen()));
-            return p;
-        }
-
-        // If it is not the packet we want, queue this packet and try again
-        this->queuePacket(p);
-    }
-
-    // No packet on the wire.
     return nullptr;
 }
 
@@ -882,7 +822,6 @@ int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBl
     return 0;
 #endif
 }
-
 
 /// Gets a file via HTTP.
 /** This sends an HTTP server the request to get a file and then gets that file

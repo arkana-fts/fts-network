@@ -66,7 +66,6 @@ public:
     virtual std::string getCounterpartIP() const = 0;
 
     virtual Packet *waitForThenGetPacket(bool in_bUseQueue = true) = 0;
-    virtual Packet *getPacketIfPresent(bool in_bUseQueue = true) = 0;
     virtual Packet *getReceivedPacketIfAny() = 0 ;
     virtual FTSC_ERR send(Packet *in_pPacket) = 0;
     virtual FTSC_ERR mreq(Packet *in_pPacket) = 0;
