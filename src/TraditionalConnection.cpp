@@ -327,7 +327,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
 
         // Retry as long as we have time to.
         currentTime = std::chrono::steady_clock::now();
-    } while( std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() < m_maxWaitMillisec);
+    } while( std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() < 10000 /*msec*/);
 
 #if defined(_WIN32)
     FTS18N( "Net_TCPIP_connect_to", MsgType::Error, in_sName, toString(in_usPort), "Timed out (maybe the counterpart is down)", toString(WSAGetLastError( )) );
@@ -462,21 +462,18 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
 
     int serr = 0;
 
-    using namespace std::chrono;
-    auto startTime = steady_clock::now();
-
 #if defined(_WIN32)
     fd_set fdr;
-    timeval tv = {0, (long) 10000 }; // 10ms
+    timeval tv = { 0, (long) m_maxWaitMillisec * 1000 }; 
 
     FD_ZERO( &fdr );
     FD_SET( m_sock, &fdr );
 
     // Wait an amount of time or wait infinitely
-    if(m_maxWaitMillisec == ((uint64_t)(-1)))
-        serr = ::select(1, &fdr,NULL, NULL, NULL);
+    if( m_maxWaitMillisec == ((uint64_t) (-1)) )
+        serr = ::select( 1, &fdr, NULL, NULL, NULL );
     else
-        serr = ::select(1, &fdr,NULL, NULL, &tv);
+        serr = ::select( 1, &fdr, NULL, NULL, &tv );
 #else
     do {
         pollfd pfd;
@@ -485,25 +482,14 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
         pfd.revents = 0;
 
         // Wait an amount of time or wait infinitely
-        if(m_maxWaitMillisec == ((uint64_t)(-1)))
+        if( m_maxWaitMillisec == ((uint64_t) (-1)) )
             serr = ::poll( &pfd, 1, -1 );
         else
-            serr = ::poll( &pfd, 1, (int)10000 );
+            serr = ::poll( &pfd, 1, (int) m_maxWaitMillisec /*ms*/ );
     } while( serr == SOCKET_ERROR && errno == EINTR );
 #endif
 
-    if( serr == SOCKET_ERROR ) {
-        FTS18N( "Net_TCPIP_select", MsgType::Error, strerror(errno), toString(errno) );
-        this->disconnect();
-        return nullptr;
-    }
-
     if( serr == 0 ) {
-        return nullptr;
-    }
-    auto currentTime = steady_clock::now();
-    if(duration_cast<microseconds>(currentTime-startTime).count() > m_maxWaitMillisec) {
-        netlog("Dropping due to timeout (allowed "+toString(m_maxWaitMillisec)+" ms)!");
         return nullptr;
     }
 
@@ -514,12 +500,14 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
         // Get the first "F"
         do {
             if(FTSC_ERR::OK != this->get_lowlevel(&buf, 1)) {
+                FTSMSGDBG( "Reading F.", 3 );
                 return nullptr;
             }
         } while(buf != 'F');
 
         // Check for the next "T". If it isn't one, restart.
         if( FTSC_ERR::OK != this->get_lowlevel( &buf, 1 ) ) {
+            FTSMSGDBG( "Reading T.", 3 );
             return nullptr;
         }
 
@@ -528,6 +516,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
 
         // Check for the next "S". If it isn't one, restart.
         if( FTSC_ERR::OK != this->get_lowlevel( &buf, 1 ) ) {
+            FTSMSGDBG( "Reading S1.", 3 );
             return nullptr;
         }
 
@@ -536,6 +525,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
 
         // Check for the next "S". If it isn't one, restart.
         if( FTSC_ERR::OK != this->get_lowlevel( &buf, 1 ) ) {
+            FTSMSGDBG( "Reading S2.", 3 );
             return nullptr;
         }
 
@@ -547,6 +537,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
     // We already got the "FTSS" header, now get the rest of the header.
     Packet *p = new Packet(DSRV_MSG_NULL);
     if( FTSC_ERR::OK != this->get_lowlevel( &p->m_pData[4], sizeof( fts_packet_hdr_t ) - 4 ) ) {
+        FTSMSGDBG( "Reading header 2nd part failed.", 3);
         delete p;
         return nullptr;
     }
@@ -561,6 +552,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue)
     p->realloc(p->getTotalLen());
     // And get it.
     if( FTSC_ERR::OK != this->get_lowlevel( p->getPayloadPtr(), p->getPayloadLen() ) ) {
+        FTSMSGDBG( "Reading payload failed.", 3 );
         delete p;
         return nullptr;
     }

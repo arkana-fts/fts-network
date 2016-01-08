@@ -34,10 +34,6 @@ using SOCKADDR_IN = struct sockaddr_in;
 #include "connection.h"
 #include "packet.h"
 
-#define FTSC_TIME_OUT      1000    ///< time out value in milliseconds
-#define FTSC_MAX_QUEUE_LEN 32      ///< The longest queue we shall have. If queue gets longer, drop it.
-
-
 namespace FTS {
 
 /// A Traditional TCP/IP implementation of the connection class.
@@ -48,9 +44,6 @@ namespace FTS {
  * The connection is done one time
  * and then never done again. At the end, the connection is closed.\n
  * \n
- * Read more details
- * about it in our DokuWiki design documents->networking section, direct link:
- * http://wiki.arkana-fts.org/doku.php?id=design_documents:networking:src:connection_types
  **/
 class TraditionalConnection : public Connection {
     friend class OnDemandHTTPConnection;
