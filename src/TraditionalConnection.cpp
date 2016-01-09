@@ -40,12 +40,8 @@ inline void close(SOCKET s)
 
 #endif
 
-
 using namespace FTS;
 
-#if defined(DEBUG) 
-#define D_DEBUG_QUEUE
-#endif
 /// TODO: Add better logging of what travels trough the net maybe ?
 void TraditionalConnection::netlog(const std::string &in_s)
 {
@@ -171,9 +167,7 @@ void FTS::TraditionalConnection::disconnect()
     }
     // We need to check empty the queue ourselves.
     if(!m_lpPacketQueue.empty()) {
-#if defined(D_DEBUG_QUEUE)
-        FTSMSGDBG( "There are still {1} packets in the queue left.", 4, toString( m_lpPacketQueue.size() ) );
-#endif
+        FTSMSGDBG( "There are still {1} packets in the queue left.", 5, toString( m_lpPacketQueue.size() ) );
         for( auto p : m_lpPacketQueue ) {
             delete p;
         }

@@ -29,10 +29,6 @@
 
 using namespace FTS;
 
-#if defined(DEBUG) 
-#  define D_DEBUG_QUEUE
-#endif
-
 Connection * FTS::Connection::create( eConnectionType type, const std::string &in_sName, std::uint16_t in_usPort, std::uint64_t in_ulTimeoutInMillisec )
 {
     switch( type ) {
@@ -84,8 +80,7 @@ Packet *FTS::Connection::getFirstPacketFromQueue( master_request_t in_req )
         }
     }
 
-#ifdef D_DEBUG_QUEUE
-    if( p != nullptr ) {
+    if( p != nullptr && Logger::DbgLevel() == 5) {
         FTSMSGDBG("Recv packet from queue with ID 0x{1}, payload len: {2}", 4, toString(p->getType(), -1, ' ', std::ios::hex), toString(p->getPayloadLen()));
         std::string s = "Queue is now: (len:"+toString(m_lpPacketQueue.size())+")";
         for(auto pPack : m_lpPacketQueue) {
@@ -94,7 +89,6 @@ Packet *FTS::Connection::getFirstPacketFromQueue( master_request_t in_req )
         s += "End.";
         FTSMSGDBG(s, 4);
     }
-#endif
 
     return p;
 }
@@ -106,34 +100,33 @@ Packet *FTS::Connection::getFirstPacketFromQueue( master_request_t in_req )
  *
  * \author Pompei2
  */
-void FTS::Connection::queuePacket(Packet *in_pPacket)
+void FTS::Connection::queuePacket( Packet *in_pPacket )
 {
-    if(!in_pPacket)
-        return ;
+    if( !in_pPacket )
+        return;
 
-    m_lpPacketQueue.push_back(in_pPacket);
+    m_lpPacketQueue.push_back( in_pPacket );
 
     // Don't make the queue too big.
-    while(m_lpPacketQueue.size() > FTSC_MAX_QUEUE_LEN) {
+    while( m_lpPacketQueue.size() > FTSC_MAX_QUEUE_LEN ) {
         Packet *pPack = m_lpPacketQueue.front();
-#ifdef D_DEBUG_QUEUE
-        FTSMSGDBG("Queue full, dropping packet with ID 0x{1}, payload len: {2}",4,
-                  toString(pPack->getType(), -1, ' ', std::ios::hex), toString(pPack->getPayloadLen()));
-#endif
+        FTSMSGDBG( "Queue full, dropping packet with ID 0x{1}, payload len: {2}", 5,
+                   toString( pPack->getType(), -1, ' ', std::ios::hex ), toString( pPack->getPayloadLen() ) );
         m_lpPacketQueue.pop_front();
         delete pPack;
     }
 
-#ifdef D_DEBUG_QUEUE
-    FTSMSGDBG("Queued packet with ID 0x{1}, payload len: {2}", 4,
-              toString(in_pPacket->getType(),-1,' ',std::ios::hex), toString(in_pPacket->getPayloadLen()));
-    std::string s = "Queue is now: (len:"+toString(m_lpPacketQueue.size())+")";
-    for(auto pPack : m_lpPacketQueue) {
-        s += "(0x" + toString(pPack->getType(), -1, ' ', std::ios::hex) + "," + toString(pPack->getPayloadLen()) + ")";
+    if( Logger::DbgLevel() == 5 ) {
+
+        FTSMSGDBG( "Queued packet with ID 0x{1}, payload len: {2}", 5,
+                   toString( in_pPacket->getType(), -1, ' ', std::ios::hex ), toString( in_pPacket->getPayloadLen() ) );
+        std::string s = "Queue is now: (len:" + toString( m_lpPacketQueue.size() ) + ")";
+        for( auto pPack : m_lpPacketQueue ) {
+            s += "(0x" + toString( pPack->getType(), -1, ' ', std::ios::hex ) + "," + toString( pPack->getPayloadLen() ) + ")";
+        }
+        s += "End.";
+        FTSMSGDBG( s, 5 );
     }
-    s += "End.";
-    FTSMSGDBG(s, 4);
-#endif
 }
 
 void FTS::Connection::addSendPacketStat( Packet * p )
