@@ -24,11 +24,6 @@ class Packet {
     friend class TraditionalConnection;
     friend class OnDemandHTTPConnection;
 
-private:
-    int8_t *m_pData;     ///< The data this packet contains.
-    uint32_t m_uiCursor; ///< The current cursor position in the data.
-
-
 public:
     Packet( const Packet &in_copy ) = delete ; ///< Block the copy-constructor.
     Packet() = delete; ///< Block the default-constructor.
@@ -40,16 +35,16 @@ public:
     Packet *setType(master_request_t in_cType);
     master_request_t getType() const;
 
-    uint32_t getTotalLen() const;
-    uint32_t getPayloadLen()const;
+    std::size_t getTotalLen() const;
+    std::size_t getPayloadLen()const;
     Packet *rewind();
-    Packet *realloc( size_t in_newSize );
-    uint8_t* getPayloadPtr() const { return ( uint8_t* ) &m_pData[sizeof( fts_packet_hdr_t )]; }
+    Packet *realloc( std::size_t in_newSize );
+    uint8_t* getPayloadPtr() const { return (std::uint8_t* ) &m_pData[sizeof( fts_packet_hdr_t )]; }
     Packet* transferData( Packet* p );
 
 
     Packet *append(std::string in);
-    Packet *append(const void *in_pData, uint32_t in_iSize);
+    Packet *append(const void *in_pData, std::size_t in_iSize);
 
     /// Appends something to the message.
     /** This appends something at the current cursor position in the message.
@@ -68,8 +63,8 @@ public:
     template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
     Packet* append( T in )
     {
-        int8_t* pBuf;
-        pBuf = (int8_t *)::realloc( (void *) m_pData, sizeof( T ) + m_uiCursor );
+        std::int8_t* pBuf;
+        pBuf = (std::int8_t *)::realloc( (void *) m_pData, sizeof( T ) + m_uiCursor );
         if( pBuf != nullptr ) {
             m_pData = pBuf;
             *((T *) & m_pData[m_uiCursor]) = in;
@@ -98,7 +93,7 @@ public:
     template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr > 
     void get( T& in )
     {
-        size_t len = this->getTotalLen();
+        std::size_t len = this->getTotalLen();
         if( m_uiCursor >= len || m_uiCursor + sizeof( T ) > len ) {
             in = (T) 0;
             return;
@@ -109,11 +104,11 @@ public:
         return;
     }
 
-    inline int8_t get() {int8_t out = 0; this->get(out); return out;};
+    inline std::int8_t get() { std::int8_t out = 0; this->get(out); return out;};
     inline void get(std::string& out) {out = this->get_string(); }
     std::string get_string();
     std::string extractString();
-    int get(void *out_pData, uint32_t in_iSize);
+    int get(void *out_pData, std::size_t in_iSize);
 
     int writeToPacket(Packet *in_pPack);
     int readFromPacket(Packet *in_pPack);
@@ -121,6 +116,8 @@ public:
     int printToFile(FILE *in_pFile) const;
 
 private:
+    std::int8_t *m_pData;     ///< The data this packet contains.
+    std::size_t m_uiCursor;   ///< The current cursor position in the data.
 
     /// Returns a pointer to the beginning of the data.
     inline int8_t *getDataPtr() {return &m_pData[D_PACKET_HDR_LEN];};

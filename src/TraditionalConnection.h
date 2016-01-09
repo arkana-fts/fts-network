@@ -77,14 +77,14 @@ protected:
 
     FTSC_ERR connectByName( std::string in_sName, std::uint16_t in_usPort);
     virtual Packet *getPacket(bool in_bUseQueue, uint64_t timeOut = 0);
-    virtual FTSC_ERR get_lowlevel(void *out_pBuf, std::uint32_t in_uiLen);
+    virtual FTSC_ERR get_lowlevel(void *out_pBuf, std::size_t in_uiLen);
     virtual std::string getLine(const std::string in_sLineEnding);
 
-    virtual FTSC_ERR send( const void *in_pData, std::uint32_t in_uiLen );
+    virtual FTSC_ERR send( const void *in_pData, std::size_t in_uiLen );
 
 private:
     void netlog( const std::string &in_s ); 
-    void netlog2( const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf );
+    void netlog2( const std::string &in_s, const void* id, size_t in_uiLen, const char *in_pBuf );
 
 };
 

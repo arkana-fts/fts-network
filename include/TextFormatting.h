@@ -32,7 +32,7 @@ static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, c
     return out.str();
 }
 
-static inline std::string toHexString( const char* buf, int len )
+static inline std::string toHexString( const char* buf, std::size_t len )
 {
     return toString( *buf, 2, ' ', std::ios::hex );
 }

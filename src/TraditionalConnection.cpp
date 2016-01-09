@@ -37,6 +37,7 @@ inline void close(SOCKET s)
 #endif
 
 using namespace FTS;
+using namespace std;
 
 void TraditionalConnection::netlog(const std::string &in_s)
 {
@@ -46,7 +47,7 @@ void TraditionalConnection::netlog(const std::string &in_s)
     FTSMSGDBG(in_s+"\n", 5);
 }
 
-void TraditionalConnection::netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
+void TraditionalConnection::netlog2(const std::string &in_s, const void* id, size_t in_uiLen, const char *in_pBuf)
 {
     if( Logger::DbgLevel() == 0 ) {
         return;
@@ -336,10 +337,10 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
  *
  * \author Pompei2
  */
-FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::uint32_t in_uiLen)
+FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in_uiLen)
 {
     int read = 0;
-    uint32_t to_read = in_uiLen;
+    size_t to_read = in_uiLen;
     int8_t *buf = (int8_t *)out_pBuf;
 
     using namespace std::chrono;
@@ -646,7 +647,7 @@ Packet *FTS::TraditionalConnection::waitForThenGetPacketWithReq(master_request_t
  *
  * \author Pompei2
  */
-FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::uint32_t in_uiLen )
+FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::size_t in_uiLen )
 {
     if(!m_bConnected)
         return FTSC_ERR::NOT_CONNECTED;
@@ -654,7 +655,7 @@ FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::uint32_t i
     errno = 0;
 
     int iSent = 0;
-    uint32_t uiToSend = in_uiLen;
+    size_t uiToSend = in_uiLen;
     const int8_t *buf = (const int8_t *)in_pData;
 
     do {

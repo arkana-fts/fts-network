@@ -14,6 +14,7 @@
 #include "packet.h"
 
 using namespace FTS;
+using namespace std;
 
 #define ERR_OK 0
 
@@ -125,7 +126,7 @@ Packet *FTS::Packet::append(std::string in)
         strcpy((char *)&m_pData[m_uiCursor], in.c_str());
     }
     m_uiCursor += in.length() + 1;
-    ((fts_packet_hdr_t*)m_pData)->data_len = m_uiCursor - D_PACKET_HDR_LEN ;
+    ((fts_packet_hdr_t*) m_pData)->data_len = (std::uint32_t) (m_uiCursor - D_PACKET_HDR_LEN);
     return this;
 }
 
@@ -144,9 +145,9 @@ Packet *FTS::Packet::append(std::string in)
  *
  * \author Pompei2
  */
-Packet *FTS::Packet::append(const void *in_pData, uint32_t in_iSize)
+Packet *FTS::Packet::append(const void *in_pData, std::size_t in_iSize)
 {
-    uint32_t iLen = in_iSize + m_uiCursor + 1;
+    auto iLen = in_iSize + m_uiCursor + 1;
     realloc(iLen);
     if(in_pData == nullptr) {
         // special case : on NULL ptr a \0 should be generated.
@@ -156,7 +157,7 @@ Packet *FTS::Packet::append(const void *in_pData, uint32_t in_iSize)
         memcpy(&m_pData[m_uiCursor], in_pData, in_iSize);
         m_uiCursor += in_iSize;
     }
-    ((fts_packet_hdr_t*)m_pData)->data_len = m_uiCursor - D_PACKET_HDR_LEN;
+    ((fts_packet_hdr_t*)m_pData)->data_len = (std::uint32_t) (m_uiCursor - D_PACKET_HDR_LEN);
     return this;
 }
 
@@ -178,7 +179,7 @@ std::string FTS::Packet::get_string()
 
     // Check if a \0 is in the buffer, otherwise return empty string and move to cursor to the end, since the buffer is corrupt.
     bool foundEnd = false;
-    for( uint32_t i = 0; i < (len - m_uiCursor); ++i )
+    for( size_t i = 0; i < (len - m_uiCursor); ++i )
     {
         if( m_pData[m_uiCursor + i] == 0 )
         {
@@ -225,7 +226,7 @@ std::string FTS::Packet::extractString()
     memcpy(&pNewData[m_uiCursor], &m_pData[m_uiCursor+byteCount+1], len - byteCount - 1 - m_uiCursor);
 
     // The data size is less now.
-    ((fts_packet_hdr_t*)pNewData)->data_len -= byteCount + 1;
+    ((fts_packet_hdr_t*)pNewData)->data_len -= (std::uint32_t) (byteCount + 1);
 
     delete m_pData;
     m_pData = pNewData;
@@ -248,9 +249,9 @@ std::string FTS::Packet::extractString()
  *
  * \author Pompei2
  */
-int FTS::Packet::get(void *out_pData, uint32_t in_iSize)
+int FTS::Packet::get(void *out_pData, size_t in_iSize)
 {
-    uint32_t len = this->getTotalLen() - m_uiCursor;
+    auto len = this->getTotalLen() - m_uiCursor;
 
     // Calculate the size of the data to get.
     len = in_iSize == 0 ? len : std::min(len,in_iSize);
@@ -267,7 +268,7 @@ int FTS::Packet::get(void *out_pData, uint32_t in_iSize)
  * \note
  *
  */
-uint32_t FTS::Packet::getTotalLen( void ) const
+size_t FTS::Packet::getTotalLen( void ) const
 {
     return ((fts_packet_hdr_t*)m_pData)->data_len + sizeof(fts_packet_hdr_t);
 }
@@ -278,15 +279,9 @@ uint32_t FTS::Packet::getTotalLen( void ) const
  * \note
  *
  */
-uint32_t FTS::Packet::getPayloadLen( void ) const
+size_t FTS::Packet::getPayloadLen( void ) const
 {
-    // For debug purposes
-#ifdef DEBUG
-    fts_packet_hdr_t *hdr = (fts_packet_hdr_t *)m_pData;
-    return hdr->data_len;
-#else
     return ((fts_packet_hdr_t*)m_pData)->data_len;
-#endif
 }
 
 /// Write this packet into another packet.
