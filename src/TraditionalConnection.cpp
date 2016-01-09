@@ -54,17 +54,6 @@ void TraditionalConnection::netlog(const std::string &in_s)
     }
     FTSMSGDBG(in_s+"\n", 5);
 }
-std::string toHexString( const char* buf, int len )
-{
-    std::stringstream out;
-    out.width( 2 );
-    out.fill( ' ' );
-    out.flags( std::ios::hex );
-    for( int i = 0; i < len; ++i ) {
-        out << (int)*buf++;
-    }
-    return out.str();
-}
 
 void TraditionalConnection::netlog2(const std::string &in_s, const void* id, uint32_t in_uiLen, const char *in_pBuf)
 {

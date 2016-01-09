@@ -32,12 +32,18 @@ static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, c
     return out.str();
 }
 
+static inline std::string toHexString( const char* buf, int len )
+{
+    return toString( *buf, 2, ' ', std::ios::hex );
+}
+
 static inline std::string toLower( const std::string& in_str )
 {
     std::string ret = in_str;
     std::transform( ret.begin(), ret.end(), ret.begin(), ::tolower ); // Thanks to SO
     return ret;
 }
+
 static inline bool ieq( const std::string& lhs, const std::string& rhs )
 {
     return toLower( lhs ) == toLower( rhs );
@@ -47,6 +53,7 @@ static inline std::string trim_left_inplace( std::string s, const std::string& d
 {
     return s.erase( 0, s.find_first_not_of( delimiters ) );
 }
+
 static inline std::string trim_right_inplace( std::string s, const std::string& delimiters = " \t" )
 {
     return s.erase( s.find_last_not_of( delimiters ) + 1, std::string::npos );
