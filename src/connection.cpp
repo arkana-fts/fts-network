@@ -20,12 +20,6 @@
 #include "Logger.h"
 #include "TraditionalConnection.h"
 
-#if defined( _WIN32 )
-#  if defined(_DEBUG)
-#    define DEBUG
-#  endif
-#endif
-
 
 using namespace FTS;
 

@@ -34,15 +34,10 @@ inline void close(SOCKET s)
     closesocket(s);
     return;
 }
-#if defined(_DEBUG)
-#  define DEBUG
-#endif
-
 #endif
 
 using namespace FTS;
 
-/// TODO: Add better logging of what travels trough the net maybe ?
 void TraditionalConnection::netlog(const std::string &in_s)
 {
     if( Logger::DbgLevel() == 0 ) {
