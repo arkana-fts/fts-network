@@ -3,18 +3,17 @@
 
 using master_request_t = std::uint8_t;
 
-constexpr size_t D_PACKET_HDR_LEN = (4 * sizeof( int8_t ) + sizeof( master_request_t ) + sizeof( uint32_t ));
-
 #pragma pack(push, 1)
 #pragma pack(1)
 struct fts_packet_hdr_t
 {
-    int8_t ident[4];            ///< 'FTSS'
-    master_request_t req_id;    ///< DSRV_MSG_ constant
-    uint32_t data_len;          ///< following size of data in bytes
+    std::int8_t ident[4];           ///< 'FTSS'
+    master_request_t req_id;        ///< DSRV_MSG_ constant
+    std::uint32_t data_len;         ///< following size of data in bytes
 } ;
-
 #pragma pack(pop)
+
+constexpr size_t D_PACKET_HDR_LEN = sizeof( fts_packet_hdr_t );
 
 // The message types.
 /////////////////////

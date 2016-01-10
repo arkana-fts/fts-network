@@ -36,6 +36,35 @@ FTS::Packet::Packet(master_request_t in_cType)
     this->rewind();
 }
 
+/** Move ctor. The other object can't be used afterwards.
+ *
+ * \param in_packet The other packet.
+ *
+ * \author Klaus Beyer
+ */
+FTS::Packet::Packet( Packet&& in_packet ) noexcept
+{
+    m_pData = in_packet.m_pData;
+    m_uiCursor = in_packet.m_uiCursor;
+    in_packet.m_pData = nullptr;
+    in_packet.m_uiCursor = 0 ;
+}
+
+/** Move assignment. The other object can't be used afterwards.
+ *
+ * \param in_packet The other packet.
+ *
+ * \author Klaus Beyer
+ */
+Packet& FTS::Packet::operator=( Packet&& in_packet ) noexcept
+{
+    m_pData = in_packet.m_pData;
+    m_uiCursor = in_packet.m_uiCursor;
+    in_packet.m_pData = nullptr;
+    in_packet.m_uiCursor = 0;
+    return *this;
+}
+
 /// Default destructor
 /** Destroys the packet object.
  *

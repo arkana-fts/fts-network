@@ -26,7 +26,9 @@ class Packet {
 
 public:
     Packet( const Packet &in_copy ) = delete ; ///< Block the copy-constructor.
-    Packet() = delete; ///< Block the default-constructor.
+    Packet() = delete;                         ///< Block the default-constructor.
+    Packet( Packet&& in_packet ) noexcept;
+    Packet& operator=( Packet&& in_packet ) noexcept;
     Packet(master_request_t in_cType);
     virtual ~Packet();
 
@@ -36,10 +38,10 @@ public:
     master_request_t getType() const;
 
     std::size_t getTotalLen() const;
-    std::size_t getPayloadLen()const;
+    std::size_t getPayloadLen() const;
     Packet *rewind();
     Packet *realloc( std::size_t in_newSize );
-    uint8_t* getPayloadPtr() const { return (std::uint8_t* ) &m_pData[sizeof( fts_packet_hdr_t )]; }
+    std::int8_t* getPayloadPtr() const { return getDataPtr(); }
     Packet* transferData( Packet* p );
 
 
@@ -120,8 +122,8 @@ private:
     std::size_t m_uiCursor;   ///< The current cursor position in the data.
 
     /// Returns a pointer to the beginning of the data.
-    inline int8_t *getDataPtr() {return &m_pData[D_PACKET_HDR_LEN];};
-    inline const int8_t *getConstDataPtr() const {return &m_pData[D_PACKET_HDR_LEN];};
+    inline std::int8_t *getDataPtr() const            {return &m_pData[D_PACKET_HDR_LEN];}
+    inline const std::int8_t *getConstDataPtr() const {return &m_pData[D_PACKET_HDR_LEN];}
 };
 
 }
