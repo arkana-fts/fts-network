@@ -1,6 +1,6 @@
 #ifndef D_DSRV_CONSTANTS_H
 #  define D_DSRV_CONSTANTS_H
-
+#include <cstdint>
 // please refer to the dokuwiki page for more detailed information.
 
 /////////////////////////////////////
@@ -15,9 +15,13 @@
 
 // Player status
 ////////////////
-#  define DSRV_CHAT_USER_NORMAL   ((uint8_t)0)
-#  define DSRV_CHAT_USER_OPERATOR ((uint8_t)1)
-#  define DSRV_CHAT_USER_ADMIN    ((uint8_t)2)
+enum class DSRV_CHAT_USER : std::uint8_t
+{
+     NORMAL = 0
+    ,OPERATOR
+    ,ADMIN
+    ,UNKNOWN = 0xFF
+};
 
 ////////////////////////////////////////////////////////
 // The indexes of the different fields in the talbes. //
