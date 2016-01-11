@@ -9,9 +9,13 @@
 
 // Chat flags
 /////////////
-#  define DSRV_CHAT_TYPE_NORMAL  ((uint8_t)0x01)
-#  define DSRV_CHAT_TYPE_WHISPER ((uint8_t)0x02)
-#  define DSRV_CHAT_TYPE_SYSTEM  ((uint8_t)0x04)
+enum class DSRV_CHAT_TYPE : std::uint8_t
+{
+     NORMAL  = 0x01
+    ,WHISPER = 0x02
+    ,SYSTEM  = 0x04
+    ,NONE = 0 
+};
 
 // Player status
 ////////////////
