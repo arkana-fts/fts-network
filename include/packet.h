@@ -44,7 +44,6 @@ public:
     std::int8_t* getPayloadPtr() const { return getDataPtr(); }
     Packet* transferData( Packet* p );
 
-
     Packet *append(std::string in);
     Packet *append(const void *in_pData, std::size_t in_iSize);
 
@@ -56,9 +55,7 @@ public:
     *
     * \return a pointer to itself (this)
     *
-    * \note the data can be anything, like an int, float, .. even a struct.
-    *       Of course, pointers gets only their address stored.
-    *       If there is not enough space to hold it, nothing is stored.
+    * \note If there is not enough space to hold it, nothing is stored.
     *
     * \author Pompei2
     */
@@ -80,15 +77,9 @@ public:
     /** This retrieves something from the current cursor position in the message.
     *  After retrieving the data, the cursor is moved to point right behind it.
     *
-    * \param in Reference to the data to retrieve. if there was an error, this is set to 0.
+    * \param in Reference to the data to retrieve. Ff there was an error, this is set to 0.
     *
     * \return nothing.
-    *
-    * \note the data can be anything, like an int, float, .. even a struct.
-    *       THIS FUNCTION IS DANGEROUS as it does not do any bound-checking,
-    *       what means that you can get more then there is !
-    *
-    *       Added a try to bound-check. TODO: Test it.
     *
     * \author Pompei2
     */
@@ -96,17 +87,16 @@ public:
     void get( T& in )
     {
         std::size_t len = this->getTotalLen();
-        if( m_uiCursor >= len || m_uiCursor + sizeof( T ) > len ) {
+        if( (m_uiCursor >= len) || ( (m_uiCursor + sizeof( T )) > len) ) {
             in = (T) 0;
             return;
         }
 
         in = *((T *) (&m_pData[m_uiCursor]));
         m_uiCursor += sizeof( T );
-        return;
     }
 
-    inline std::int8_t get() { std::int8_t out = 0; this->get(out); return out;};
+    inline std::int8_t get() { std::int8_t out = 0; this->get(out); return out;}
     inline void get(std::string& out) {out = this->get_string(); }
     std::string get_string();
     std::string extractString();

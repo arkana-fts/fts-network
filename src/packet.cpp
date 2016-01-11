@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <cstring>
 
-
 #include "packet.h"
 
 using namespace FTS;
@@ -331,7 +330,7 @@ int FTS::Packet::writeToPacket(Packet *in_pPack)
 
     // Append the request type and the data length.
     in_pPack->append(this->getType());
-    in_pPack->append(this->getPayloadLen());
+    in_pPack->append((std::uint32_t)this->getPayloadLen());
 
     // Append the data.
     in_pPack->append(this->getDataPtr(), this->getPayloadLen());
@@ -351,9 +350,8 @@ int FTS::Packet::writeToPacket(Packet *in_pPack)
  */
 int FTS::Packet::readFromPacket(Packet *in_pPack)
 {
-
     master_request_t type = DSRV_MSG_NULL;
-    uint64_t uiPayloadSize = 0;
+    std::uint32_t uiPayloadSize = 0;
 
     in_pPack->get(type);
     in_pPack->get(uiPayloadSize);
