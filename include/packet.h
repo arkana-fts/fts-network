@@ -59,7 +59,7 @@ public:
     *
     * \author Pompei2
     */
-    template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+    template<class T, typename std::enable_if<std::is_integral<T>::value || std::is_enum<T>::value>::type* = nullptr>
     Packet* append( T in )
     {
         std::int8_t* pBuf;
@@ -83,7 +83,7 @@ public:
     *
     * \author Pompei2
     */
-    template<class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr > 
+    template<class T, typename std::enable_if<std::is_integral<T>::value || std::is_enum<T>::value>::type* = nullptr >
     void get( T& in )
     {
         std::size_t len = this->getTotalLen();

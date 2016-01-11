@@ -2,6 +2,7 @@
 #include "catch.hpp"
 #include "../include/packet.h"
 #include <memory>
+#include "../include/dsrv_constants.h"
 
 using namespace FTS;
 using namespace std;
@@ -288,4 +289,16 @@ TEST_CASE( "Writing to/ reading from a packet", "[Packet]" )
     REQUIRE( p3.getPayloadLen() == p.getPayloadLen() );
     auto s = p3.get_string();
     REQUIRE( s == "Hallo Otto!" );
+}
+
+TEST_CASE( "Append non generic data", "[Packet]" )
+{
+    Packet p( DSRV_MSG_CHAT_GETMSG );
+    DSRV_CHAT_TYPE type = DSRV_CHAT_TYPE::NORMAL;
+    p.append(type);
+    p.rewind();
+    type = DSRV_CHAT_TYPE::NONE;
+    p.get( type );
+    REQUIRE( type == DSRV_CHAT_TYPE::NORMAL);
+
 }
