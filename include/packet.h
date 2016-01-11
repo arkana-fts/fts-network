@@ -68,7 +68,7 @@ public:
             m_pData = pBuf;
             *((T *) & m_pData[m_uiCursor]) = in;
             m_uiCursor += sizeof( T );
-            ((fts_packet_hdr_t*) m_pData)->data_len = m_uiCursor - D_PACKET_HDR_LEN;
+            ((fts_packet_hdr_t*) m_pData)->data_len = (std::uint32_t) (m_uiCursor - D_PACKET_HDR_LEN);
         }
         return this;
     }

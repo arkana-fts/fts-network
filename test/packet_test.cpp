@@ -127,7 +127,7 @@ TEST_CASE( "Data in out handling", "[Packet]" )
     REQUIRE( p.isValid() );
     REQUIRE( p.getPayloadLen() == 0 );
     REQUIRE( p.getTotalLen() == sizeof(fts_packet_hdr_t) );
-    int len = 0;
+    size_t len = 0;
     p.append( 1234 );
     len += sizeof( int );
     REQUIRE( p.getPayloadLen() == len );
