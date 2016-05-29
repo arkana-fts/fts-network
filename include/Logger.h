@@ -48,11 +48,14 @@ public:
     Logger() = delete;
     static void DbgLevel( int lvl ) { dbg_level = lvl; }
     static int DbgLevel() { return dbg_level; }
+    static void LogFile(std::ostream * out) { outstream = out; }
+    static std::ostream& out() { return outstream == nullptr ? std::cout : *outstream; }
     static void Lock() { mtx.lock(); }
     static void Unlock() { mtx.unlock(); }
 private:
     static int dbg_level;
     static std::recursive_mutex mtx;
+    static std::ostream* outstream;
 };
 
 template<typename T>
@@ -89,7 +92,7 @@ inline void FTSMSGDBG( std::string in_Msg, int in_iDbgLv )
 {
     if( in_iDbgLv <= Logger::DbgLevel() ) {
         Logger::Lock();
-        std::cout << in_Msg << std::endl;
+        Logger::out() << in_Msg << std::endl;
         Logger::Unlock();
     }
 }
@@ -113,7 +116,7 @@ void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity, Ts... params )
 template<>
 inline void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity )
 {
-    std::cout << in_Msg << std::endl;
+    Logger::out() << in_Msg << std::endl;
 }
 
 } // namespace FTS;
