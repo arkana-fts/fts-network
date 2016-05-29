@@ -209,7 +209,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
 #else
     if((m_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
 #endif
-        FTS18N( "Net_TCPIP_mksock", MsgType::Error, std::string(strerror( errno )), toString( errno ) );
+        FTSMSG( "Net: could not create a socket: {1} ({2})", MsgType::Error, std::string(strerror( errno )), toString( errno ) );
         return FTSC_ERR::SOCKET;
     }
 
@@ -217,10 +217,10 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
     if( nullptr == (serverInfo = gethostbyname( in_sName.c_str() )) ) {
         switch( h_errno ) {
             case -1:
-                FTS18N( "Net_TCPIP_hostname", MsgType::Error, in_sName, std::string(strerror( errno )), toString( errno ) );
+                FTSMSG( "Net: could not resolve the hostname {1}: {2} ({3})", MsgType::Error, in_sName, std::string(strerror( errno )), toString( errno ) );
                 break;
             default:
-                FTS18N( "Net_TCPIP_hostname", MsgType::Error, in_sName, "Unknown hostname", toString( h_errno ) );
+                FTSMSG( "Net: could not resolve the hostname {1}: {2} ({3})", MsgType::Error, in_sName, "Unknown hostname", toString( h_errno ) );
                 break;
         }
         close( m_sock );
@@ -271,7 +271,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
             else
                 serr = ::poll( &pfd, 1, (int)(m_maxWaitMillisec) );
             if(serr == SOCKET_ERROR) {
-                FTS18N("Net_TCPIP_select", MsgType::Error, std::string(strerror(errno)), toString(errno));
+                FTSMSG("Net: error during select: {1} ({2})", MsgType::Error, std::string(strerror(errno)), toString(errno));
                 close(m_sock);
                 return FTSC_ERR::SOCKET;
             }
@@ -284,7 +284,7 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
                 m_bConnected = true;
                 return FTSC_ERR::OK;
             } else {
-                FTS18N("Net_TCPIP_connect", MsgType::Error, in_sName, toString(in_usPort), std::string(strerror(result)), toString(result));
+                FTSMSG("Net: could not connect to {1} at port {2}: {3} ({4})", MsgType::Error, in_sName, toString(in_usPort), std::string(strerror(result)), toString(result));
                 close(m_sock);
                 return FTSC_ERR::SOCKET;
             }
@@ -295,14 +295,14 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
         } else if(WSAGetLastError() != WSAEWOULDBLOCK &&
                   WSAGetLastError() != WSAEALREADY &&
                   WSAGetLastError() != WSAEINVAL) {
-                      FTS18N("Net_TCPIP_connect", MsgType::Error, in_sName, toString(in_usPort),
+                      FTSMSG("Net: could not connect to {1} at port {2}: {3} ({4})", MsgType::Error, in_sName, toString(in_usPort),
                    "Address not found (maybe you're not connected to the internet)",
                    toString(WSAGetLastError()));
 #else
         } else if(/*errno != EINPROGRESS &&*/
                   errno != EALREADY &&
                   errno != EAGAIN) {
-            FTS18N( "Net_TCPIP_connect", MsgType::Error, in_sName, toString( in_usPort ), std::string( strerror( errno )), toString( errno ) );
+            FTSMSG( "Net: could not connect to {1} at port {2}: {3} ({4})", MsgType::Error, in_sName, toString( in_usPort ), std::string( strerror( errno )), toString( errno ) );
 #endif
             close(m_sock);
             return FTSC_ERR::NOT_CONNECTED;
@@ -313,9 +313,9 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
     } while( std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() < 10000 /*msec*/);
 
 #if defined(_WIN32)
-    FTS18N( "Net_TCPIP_connect_to", MsgType::Error, in_sName, toString(in_usPort), "Timed out (maybe the counterpart is down)", toString(WSAGetLastError( )) );
+    FTSMSG( "Net: connection to {1} at port {2} timed out: {3} ({4})", MsgType::Error, in_sName, toString(in_usPort), "Timed out (maybe the counterpart is down)", toString(WSAGetLastError( )) );
 #else
-    FTS18N( "Net_TCPIP_connect_to", MsgType::Error, in_sName, toString(in_usPort), std::string(strerror( errno )), toString(errno) );
+    FTSMSG( "Net: connection to {1} at port {2} timed out: {3} ({4})", MsgType::Error, in_sName, toString(in_usPort), std::string(strerror( errno )), toString(errno) );
 #endif
     return FTSC_ERR::TIMEOUT;
 }
@@ -363,7 +363,7 @@ FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in
         }
 
         if(read <= 0) {
-            FTS18N("Net_TCPIP_recv", MsgType::Error);
+            FTSMSG("Net: could not recieve data: connection lost", MsgType::Error);
             this->disconnect();
             return FTSC_ERR::RECEIVE;
         }
@@ -432,7 +432,7 @@ std::string FTS::TraditionalConnection::getLine(const std::string in_sLineEnding
 Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue, uint64_t timeOut)
 {
     if(!m_bConnected) {
-        FTS18N("InvParam", MsgType::Horror, "FTS::Connection::recv");
+        FTSMSG("There is one or more invalid parameter(s) to '{1}", MsgType::Horror, "FTS::Connection::recv");
         return nullptr;
     }
 
@@ -530,7 +530,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue, uint64_t timeOu
 
     // Now, prepare to get the packet's data.
     if( p->getPayloadLen() <= 0 ) {
-        FTS18N( "Net_packet_len", MsgType::Error, toString(p->getPayloadLen()) );
+        FTSMSG( "Net: the length of the packet is incorrect: {1}", MsgType::Error, toString(p->getPayloadLen()) );
         delete p;
         return nullptr;
     }
@@ -551,7 +551,7 @@ Packet *FTS::TraditionalConnection::getPacket(bool in_bUseQueue, uint64_t timeOu
     }
 
     // Invalid packet received.
-    FTS18N("Net_packet", MsgType::Error, "No FTSS Header/Invalid request");
+    FTSMSG("Net: an invalid packet has been received: {1}", MsgType::Error, "No FTSS Header/Invalid request");
     delete p;
     return nullptr;
 }
@@ -670,7 +670,7 @@ FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::size_t in_
 #endif
             continue;
         if(iSent < 0) {
-            FTS18N("Net_TCPIP_send", MsgType::Error, strerror(errno), toString(errno));
+            FTSMSG("Net: could not send data: {1} ({2})", MsgType::Error, strerror(errno), toString(errno));
             return FTSC_ERR::SEND;
         }
         uiToSend -= iSent;
@@ -732,7 +732,7 @@ FTSC_ERR FTS::TraditionalConnection::mreq(Packet *out_pPacket)
     }
 
     if( this->send( out_pPacket ) != FTSC_ERR::OK ) {
-        FTS18N( "Net_TCPIP_send", MsgType::Error, strerror( errno ), toString(errno) );
+        FTSMSG( "Net: could not send data: {1} ({2})", MsgType::Error, strerror( errno ), toString(errno) );
         return FTSC_ERR::SEND;
     }
 
@@ -743,7 +743,7 @@ FTSC_ERR FTS::TraditionalConnection::mreq(Packet *out_pPacket)
 
     if(p->getType() != req) {
         master_request_t id = p->getType();
-        FTS18N("Net_packet", MsgType::Error, "got id "+toString(id)+", wanted "+toString(req));
+        FTSMSG("Net: an invalid packet has been received: {1}", MsgType::Error, "got id "+toString(id)+", wanted "+toString(req));
         delete p;
         return FTSC_ERR::WRONG_RSP;
     }
@@ -779,22 +779,22 @@ int FTS::TraditionalConnection::setSocketBlocking( SOCKET in_socket, bool in_bBl
 
     if( in_bBlocking ) {
         if( (flags = fcntl( in_socket, F_GETFL, 0 )) < 0 ) {
-            FTS18N( "Net_TCPIP_fcntl_get", MsgType::Error, strerror( errno ), toString( errno ) );
+            FTSMSG( "Net: error getting fcntl: {1} ({2})", MsgType::Error, strerror( errno ), toString( errno ) );
             return -1;
         }
 
         if( fcntl( in_socket, F_SETFL, flags & (~O_NONBLOCK) ) < 0 ) {
-            FTS18N( "Net_TCPIP_fcntl_set", MsgType::Error, strerror( errno ), toString( errno ) );
+            FTSMSG( "Net: error setting fcntl: {1} ({2})", MsgType::Error, strerror( errno ), toString( errno ) );
             return -1;
         }
     } else {
         if( (flags = fcntl( in_socket, F_GETFL, 0 )) < 0 ) {
-            FTS18N( "Net_TCPIP_fcntl_get", MsgType::Error, strerror( errno ), toString( errno ) );
+            FTSMSG( "Net: error getting fcntl: {1} ({2})", MsgType::Error, strerror( errno ), toString( errno ) );
             return -1;
         }
 
         if( fcntl( in_socket, F_SETFL, flags | O_NONBLOCK ) < 0 ) {
-            FTS18N( "Net_TCPIP_fcntl_set", MsgType::Error, strerror( errno ), toString( errno ) );
+            FTSMSG( "Net: error setting fcntl: {1} ({2})", MsgType::Error, strerror( errno ), toString( errno ) );
             return -1;
         }
     }
@@ -914,13 +914,13 @@ int FTS::downloadHTTPFile(const std::string &in_sServer, const std::string &in_s
 
     FILE *pFile = fopen(in_sLocal.c_str(), "w+b");
     if(!pFile) {
-        FTS18N("File_FopenW", MsgType::Error, in_sLocal, strerror(errno));
+        FTSMSG("Cannot open file {1} with write access: {2}", MsgType::Error, in_sLocal, strerror(errno));
         return -2;
     }
 
     bool bSuccess = fwrite(Data.data(), Data.size(), 1, pFile) == 1;
     if(!bSuccess)
-        FTS18N("File_Write", MsgType::Error, in_sLocal, strerror(errno));
+        FTSMSG("Cannot write to the file {1}: {2}", MsgType::Error, in_sLocal, strerror(errno));
 
     fclose(pFile);
 
