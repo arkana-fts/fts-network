@@ -50,11 +50,10 @@ public:
     static int DbgLevel() { return dbg_level; }
     static void LogFile(std::ostream * out) { outstream = out; }
     static std::ostream& out() { return outstream == nullptr ? std::cout : *outstream; }
-    static void Lock() { mtx.lock(); }
-    static void Unlock() { mtx.unlock(); }
+    static void Lock();
+    static void Unlock();
 private:
     static int dbg_level;
-    static std::recursive_mutex mtx;
     static std::ostream* outstream;
 };
 
@@ -116,7 +115,9 @@ void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity, Ts... params )
 template<>
 inline void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity )
 {
+    Logger::Lock();
     Logger::out() << in_Msg << std::endl;
+    Logger::Unlock();
 }
 
 } // namespace FTS;
