@@ -25,7 +25,7 @@ static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, c
     out.flags( in_fmtfl );
     // Special case for char types and formatting as hex value. 
     if( sizeof( T ) == 1 && in_fmtfl == std::ios::hex ) {
-        out << (int) t;
+        out << (int)(std::uint8_t) t;
     } else {
         out << t;
     }
@@ -34,7 +34,11 @@ static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, c
 
 static inline std::string toHexString( const char* buf, std::size_t len )
 {
-    return toString( *buf, 2, ' ', std::ios::hex );
+    std::string outstring;
+    for( int i = 0; i < len; ++i ) {
+        outstring += toString(buf[i], 2, '0', std::ios::hex);
+    }
+    return outstring;
 }
 
 static inline std::string toLower( const std::string& in_str )
