@@ -29,8 +29,8 @@ endif()
 
 # Define all sourcefiles. #
 ###########################
-set(TEST_SRC packet_test.cpp)
-set(HDR catch.hpp ../include/packet.h) 
+set(TEST_SRC packet_test.cpp TextFormatting_test.cpp)
+set(HDR catch.hpp ../include/packet.h ../include/TextFormatting.h) 
 set(SRC ../src/packet.cpp ) 
    
 if(MSVC)
