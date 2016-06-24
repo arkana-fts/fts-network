@@ -35,7 +35,7 @@ static inline std::string toString( const T& t, std::streamsize in_iWidth = 0, c
 static inline std::string toHexString( const char* buf, std::size_t len )
 {
     std::string outstring;
-    for( int i = 0; i < len; ++i ) {
+    for( size_t i = 0; i < len; ++i ) {
         outstring += toString(buf[i], 2, '0', std::ios::hex);
     }
     return outstring;
