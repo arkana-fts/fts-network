@@ -147,7 +147,7 @@ Packet *FTS::Packet::append(std::string in)
 {
     size_t iLen =  in.length() + m_uiCursor + 1;
     realloc(iLen);
-    if(in.c_str() == NULL) {
+    if(in.c_str() == nullptr) {
         // special case : on NULL ptr a \0 string should be generated.
         m_pData[m_uiCursor] = 0;
     } else {

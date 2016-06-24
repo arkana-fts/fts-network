@@ -29,6 +29,8 @@ public:
     Packet() = delete;                         ///< Block the default-constructor.
     Packet( Packet&& in_packet ) noexcept;
     Packet& operator=( Packet&& in_packet ) noexcept;
+    Packet& operator=(const Packet& in_packet) = delete; ///< Block the assigment operator
+
     Packet(master_request_t in_cType);
     virtual ~Packet();
 
