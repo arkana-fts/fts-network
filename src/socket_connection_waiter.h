@@ -29,8 +29,8 @@ public:
     bool waitForThenDoConnection(std::int64_t in_ulMaxWaitMillisec = FTSC_TIME_OUT);
 
 protected:
-    SOCKET m_listenSocket;       ///< The socket that has been prepared for listening.
-    unsigned short m_port;      ///< For debugging hold the port no we listening.
+    SOCKET m_listenSocket = 0;   ///< The socket that has been prepared for listening.
+    unsigned short m_port = 0;   ///< For debugging hold the port no we listening.
     std::function<void( FTS::Connection* )> m_cb;
 };
 
