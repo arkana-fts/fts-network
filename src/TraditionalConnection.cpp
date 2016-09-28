@@ -372,7 +372,7 @@ FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in
         buf += read;
     } while(to_read);
 
-    netlog2("recv", this, in_uiLen, (const char *)out_pBuf);
+    //netlog2("recv", this, in_uiLen, (const char *)out_pBuf);
 
     return FTSC_ERR::OK;
 }
@@ -392,7 +392,7 @@ FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in
  *
  * \author Pompei2
  */
-std::string FTS::TraditionalConnection::getLine(const std::string in_sLineEnding)
+std::string FTS::TraditionalConnection::getLine(const std::string& in_sLineEnding)
 {
     std::string sLine;
     uint8_t byte[2] = {0};

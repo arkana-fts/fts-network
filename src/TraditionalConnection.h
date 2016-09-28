@@ -78,7 +78,7 @@ protected:
     FTSC_ERR connectByName( std::string in_sName, std::uint16_t in_usPort);
     virtual Packet *getPacket(bool in_bUseQueue, uint64_t timeOut = 0);
     virtual FTSC_ERR get_lowlevel(void *out_pBuf, std::size_t in_uiLen);
-    virtual std::string getLine(const std::string in_sLineEnding);
+    virtual std::string getLine(const std::string& in_sLineEnding);
 
     virtual FTSC_ERR send( const void *in_pData, std::size_t in_uiLen );
 
