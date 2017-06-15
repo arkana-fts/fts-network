@@ -57,24 +57,10 @@ private:
     static std::ostream* outstream;
 };
 
-template<typename T>
-void pack_param( std::vector<std::string>& pack, T first )
-{
-    pack.push_back( first );
-}
-
-template<typename T, typename... Ts>
-void pack_param( std::vector<std::string>& pack, T first, Ts... params )
-{
-    pack.push_back( first );
-    pack_param( pack, params... );
-}
-
 template<typename... Ts>
-void FTSMSGDBG( std::string in_Msg, int in_iDbgLv, Ts... params )
+void FTSMSGDBG( std::string in_Msg, int in_iDbgLv, Ts&&... params )
 {
-    std::vector<std::string> args;
-    pack_param( args, params... );
+    std::vector<std::string> args{ std::forward<Ts>(params)... };
     int i = 1;
     for( auto p : args ) {
         std::string fmt = "{" + toString( i++ ) + "}";
@@ -97,10 +83,9 @@ inline void FTSMSGDBG( std::string in_Msg, int in_iDbgLv )
 }
 
 template<typename... Ts>
-void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity, Ts... params )
+void FTSMSG( std::string in_Msg, FTS::MsgType in_Gravity, Ts&&... params )
 {
-    std::vector<std::string> args;
-    pack_param( args, params... );
+    std::vector<std::string> args { std::forward<Ts>(params)... };
     int i = 1;
     for( auto p : args ) {
         std::string fmt = "{" + toString( i++ ) + "}";
