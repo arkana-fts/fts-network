@@ -339,14 +339,13 @@ FTSC_ERR FTS::TraditionalConnection::connectByName( std::string in_sName, uint16
  */
 FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in_uiLen)
 {
-    int read = 0;
     size_t to_read = in_uiLen;
     int8_t *buf = (int8_t *)out_pBuf;
 
     using namespace std::chrono;
     do {
         auto startTime = steady_clock::now();
-        read = ::recv( m_sock, (char *) buf, to_read, 0 );
+        auto read = ::recv( m_sock, (char *) buf, (int)to_read, 0 );
 #if defined(_WIN32)
         auto errorno = WSAGetLastError();
         if( read == SOCKET_ERROR && (errorno == WSAEINTR || errorno == WSATRY_AGAIN || errorno == WSAEWOULDBLOCK) ) {
@@ -355,7 +354,7 @@ FTSC_ERR FTS::TraditionalConnection::get_lowlevel(void *out_pBuf, std::size_t in
 #endif
             // Only check for timeouts when waiting for data!
             auto currentTime = steady_clock::now();
-            if( duration_cast<milliseconds>(currentTime-startTime).count() > m_maxWaitMillisec ) {
+            if( duration_cast<milliseconds>(currentTime-startTime).count() > (std::int64_t)m_maxWaitMillisec ) {
                 netlog( "Dropping due to timeout (allowed " + toString( m_maxWaitMillisec ) + " ms)!" );
                 return FTSC_ERR::OK;
             }
@@ -654,18 +653,17 @@ FTSC_ERR FTS::TraditionalConnection::send( const void *in_pData, std::size_t in_
 
     errno = 0;
 
-    int iSent = 0;
     size_t uiToSend = in_uiLen;
     const int8_t *buf = (const int8_t *)in_pData;
 
     do {
 #if defined(_WIN32)
-        iSent = ::send(m_sock, (const char *)buf, uiToSend, 0);
+        auto iSent = ::send(m_sock, (const char *)buf, (int)uiToSend, 0);
         if(iSent == SOCKET_ERROR && (WSAGetLastError() == WSAEINTR ||
                                      WSAGetLastError() == WSATRY_AGAIN ||
                                      WSAGetLastError() == WSAEWOULDBLOCK))
 #else
-        iSent = ::send(m_sock, buf, uiToSend, 0);
+        auto iSent = ::send(m_sock, buf, (int)uiToSend, 0);
         if(iSent < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
 #endif
             continue;
