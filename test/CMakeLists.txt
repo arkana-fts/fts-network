@@ -29,9 +29,9 @@ endif()
 
 # Define all sourcefiles. #
 ###########################
-set(TEST_SRC packet_test.cpp TextFormatting_test.cpp)
-set(HDR catch.hpp ../include/packet.h ../include/TextFormatting.h) 
-set(SRC ../src/packet.cpp ) 
+set(TEST_SRC packet_test.cpp TextFormatting_test.cpp Logger_test.cpp)
+set(HDR catch.hpp ../include/packet.h ../include/TextFormatting.h ../include/Logger.h) 
+set(SRC ../src/packet.cpp ../src/Logger.cpp) 
    
 if(MSVC)
     source_group( Header FILES ${HDR})
