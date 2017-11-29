@@ -16,10 +16,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 PROJECT(fts-networking)
 
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY   "${fts-networking_SOURCE_DIR}/lib")
-set( FTSLIBTYPE "STATIC")
-set( CMAKE_DEBUG_POSTFIX "_d")
-
 if(MSVC)
     FOREACH(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -28,26 +24,28 @@ if(MSVC)
             STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
         ENDIF()
     ENDFOREACH(flag_var)
-else()
-    add_definitions(-fpermissive)
 endif()
 
 set( src ./src/fts-net.cpp ./src/connection.cpp ./src/TraditionalConnection.cpp ./src/packet.cpp ./src/Logger.cpp ./src/socket_connection_waiter.cpp ./src/connection_waiter.cpp)
 set( src_h ./src/TraditionalConnection.h ./src/socket_connection_waiter.h )
 set( hdr ./include/fts-net.h ./include/connection.h ./include/packet.h ./include/packet_header.h ./include/Logger.h ./include/TextFormatting.h ./include/dsrv_constants.h ./include/connection_waiter.h)
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-if(MSVC)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
-source_group( Source FILES ${src})
-source_group( Header FILES ${hdr})
-source_group( InternalHeader FILES ${src_h})
-endif()
 
 add_library(fts-net STATIC ${hdr} ${src_h} ${src} )
+target_include_directories(fts-net PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+if(MSVC)
+    target_compile_definitions(fts-net PRIVATE _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS)
+    source_group( Source FILES ${src})
+    source_group( Header FILES ${hdr})
+    source_group( InternalHeader FILES ${src_h})
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_definitions(fts-net PRIVATE permissive)
+endif()
+
 set_property(TARGET fts-net PROPERTY CXX_STANDARD 14)
 set_property(TARGET fts-net PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET fts-net PROPERTY DEBUG_POSTFIX "_d")
+set_property(TARGET fts-net PROPERTY ARCHIVE_OUTPUT_DIRECTORY "${fts-networking_SOURCE_DIR}/lib")
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/  DESTINATION include)
 install(TARGETS fts-net ARCHIVE DESTINATION lib)
